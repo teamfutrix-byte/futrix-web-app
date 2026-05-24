@@ -992,9 +992,9 @@
     const seriesId  = cfg.seriesId || '#FX-0001';
     const userEmail = (user.email || '').toLowerCase().trim();
 
-    // 1st Check: Local Storage check (immediate offline block)
+    // 1st Check: Local Storage check (candidate & series specific offline block)
     let alreadyDone = false;
-    if (localStorage.getItem('attempted_' + seriesId) === 'true') {
+    if (localStorage.getItem('attempted_' + userEmail + '_' + seriesId) === 'true') {
       alreadyDone = true;
     }
 
@@ -1018,7 +1018,10 @@
           s.onerror = () => { cleanup(); res(null); };
           document.head.appendChild(s);
         });
-        if (result && result.attempted) alreadyDone = true;
+        if (result && result.attempted) {
+          alreadyDone = true;
+          localStorage.setItem('attempted_' + userEmail + '_' + seriesId, 'true');
+        }
       } catch(_) {}
     }
 

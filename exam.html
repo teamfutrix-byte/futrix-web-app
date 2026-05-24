@@ -1170,7 +1170,8 @@ async function submitExam() {
 
   showResult(correct, wrong, skipped, score);
   try {
-    localStorage.setItem('attempted_' + EXAM_CONFIG.seriesId, 'true');
+    const userEmail = (user.email || '').toLowerCase().trim();
+    localStorage.setItem('attempted_' + userEmail + '_' + EXAM_CONFIG.seriesId, 'true');
   } catch (e) {
     console.warn('LocalStorage save failed:', e);
   }

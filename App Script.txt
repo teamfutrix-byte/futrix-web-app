@@ -87,15 +87,34 @@ function saveResponse(e) {
       var hr2 = sheet.getRange(1,1,1,headers.length); hr2.setFontWeight('bold'); hr2.setBackground('#1a73e8'); hr2.setFontColor('#ffffff'); sheet.setFrozenRows(1);
     }
   }
-  sheet.appendRow([new Date(), e.parameter.candidateName||'', e.parameter.candidateEmail||'', e.parameter.candidatePhone||'',
+  var candidateEmail = (e.parameter.candidateEmail || '').toLowerCase().trim();
+  sheet.appendRow([new Date(), e.parameter.candidateName||'', candidateEmail, e.parameter.candidatePhone||'',
     e.parameter.seriesId||'', Number(e.parameter.score||0), Number(e.parameter.correct||0), Number(e.parameter.wrong||0),
     Number(e.parameter.skipped||0), Number(e.parameter.totalQuestions||0), e.parameter.timeTaken||'', e.parameter.answers||'{}']);
+  
+  // Log entry in "Exam Attempts" sheet
+  try {
+    var attemptSheet = ss.getSheetByName('Exam Attempts');
+    var attemptHeaders = ['Timestamp', 'Series ID', 'Candidate Name', 'Email'];
+    if (!attemptSheet) {
+      attemptSheet = ss.insertSheet('Exam Attempts'); attemptSheet.appendRow(attemptHeaders);
+      var ahr = attemptSheet.getRange(1,1,1,attemptHeaders.length); ahr.setFontWeight('bold'); ahr.setBackground('#34a853'); ahr.setFontColor('#ffffff'); attemptSheet.setFrozenRows(1);
+    } else {
+      if (String(attemptSheet.getRange(1,1).getValue()) !== 'Timestamp') {
+        attemptSheet.insertRowBefore(1); attemptSheet.getRange(1,1,1,attemptHeaders.length).setValues([attemptHeaders]);
+        var ahr2 = attemptSheet.getRange(1,1,1,attemptHeaders.length); ahr2.setFontWeight('bold'); ahr2.setBackground('#34a853'); ahr2.setFontColor('#ffffff'); attemptSheet.setFrozenRows(1);
+      }
+    }
+    attemptSheet.appendRow([new Date(), e.parameter.seriesId||'', e.parameter.candidateName||'', candidateEmail]);
+  } catch (err) {
+    Logger.log('Error saving to Exam Attempts sheet: ' + err.message);
+  }
+
   var xpEarned = parseFloat(e.parameter.xpEarned || 0);
   if (xpEarned !== 0) {
     var regSheet = ss.getSheets()[0]; var regData = regSheet.getDataRange().getValues(); var xpCol = getXPColumn(regSheet);
-    var uEmail = (e.parameter.candidateEmail||'').toLowerCase().trim();
     for (var i = 1; i < regData.length; i++) {
-      if (String(regData[i][2]).toLowerCase().trim() === uEmail) {
+      if (String(regData[i][2]).toLowerCase().trim() === candidateEmail) {
         var newXP = Math.max(0, parseFloat(((parseFloat(regData[i][xpCol-1])||100) + xpEarned).toFixed(2)));
         regSheet.getRange(i+1, xpCol).setValue(newXP); break;
       }
@@ -105,23 +124,23 @@ function saveResponse(e) {
 }
 // ── CHECK ATTEMPT: Check if test is already taken once ──
 function checkAttempt(e) {
-  var email    = (e.parameter.email    || '').toLowerCase().trim();
-  var seriesId = (e.parameter.seriesId || '').trim();
+  var email    = (e.parameter.email    || e.parameter.candidateEmail || e.parameter.emailAddress || '').toLowerCase().trim();
+  var seriesId = (e.parameter.seriesId || e.parameter.series || '').trim();
 
   if (!email || !seriesId)
     return { attempted: false };
 
   var ss    = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('Exam Responses');
+  var sheet = ss.getSheetByName('Exam Attempts');
 
   if (!sheet) return { attempted: false };
 
   var data = sheet.getDataRange().getValues();
 
-  // Column C = Email (index 2), Column E = Series ID (index 4)
+  // Column B = Series ID (index 1), Column D = Email (index 3)
   for (var i = 1; i < data.length; i++) {
-    var rowEmail  = String(data[i][2] || '').toLowerCase().trim();
-    var rowSeries = String(data[i][4] || '').trim();
+    var rowSeries = String(data[i][1] || '').trim();
+    var rowEmail  = String(data[i][3] || '').toLowerCase().trim();
     if (rowEmail === email && rowSeries === seriesId) {
       return { attempted: true, series: seriesId };
     }
