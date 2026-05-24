@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exam | Futrix Pilot</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #10131a;
+      --surface:     #1a1f2e;
+      --surface-hi:  #222838;
+      --border:      rgba(255,255,255,0.07);
+      --text:        #e1e2ec;
+      --text-muted:  #6b7280;
+      --primary:     #4d8eff;
+      --answered:    #16a34a;
+      --review:      #d97706;
+      --not-visited: #2a3045;
+      --current-bg:  rgba(77,142,255,0.25);
+      --danger:      #ef4444;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Geist','Sora',sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* ══════ TOP BAR ══════ */
+    .topbar {
+      height: 52px;
+      background: rgba(13,16,23,0.98);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+    }
+    .logo {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 1.3rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .logo span {
+      color: var(--primary);
+    }
+    .series-id {
+      font-family: 'Sora', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--text);
+    }
+    .timer-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: var(--surface-hi);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.35rem 1rem;
+      font-family: 'Sora', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text);
+      transition: background 0.3s;
+    }
+    .timer-badge.warning { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
+    .candidate-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .candidate-details { text-align: right; }
+    .candidate-name { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+    .candidate-id   { font-size: 0.68rem; color: var(--text-muted); }
+    .avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #00e5d4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    /* ══════ MAIN LAYOUT ══════ */
+    .exam-layout {
+      display: flex;
+      height: 100vh;
+      padding-top: 52px;
+    }
+
+    /* ══════ LEFT: QUESTION PANEL ══════ */
+    .question-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 1.2rem 1.5rem 0;
+    }
+
+    .q-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      flex-shrink: 0;
+    }
+    .q-number {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .marks-badge {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--surface-hi);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.3rem 0.9rem;
+    }
+    .marks-badge span { color: #4ade80; margin-right: 0.3rem; }
+    .marks-badge em   { color: #f87171; font-style: normal; }
+
+    /* Question Box */
+    .q-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.4rem;
+      margin-bottom: 1rem;
+      flex-shrink: 0;
+    }
+    .q-text {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+
+    /* Options */
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 1.2rem;
+      flex-shrink: 0;
+    }
+    .option-btn {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem 1.1rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: var(--surface);
+      color: var(--text);
+      font-family: 'Geist', sans-serif;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: left;
+      width: 100%;
+    }
+    .option-btn:hover { border-color: rgba(77,142,255,0.35); background: rgba(77,142,255,0.06); }
+    .option-btn.selected {
+      background: rgba(77,142,255,0.18);
+      border-color: var(--primary);
+      color: #c7d9ff;
+    }
+    .option-label {
+      width: 26px; height: 26px;
+      border-radius: 6px;
+      background: var(--surface-hi);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+    .option-btn.selected .option-label {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Navigation */
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.9rem 0 1rem;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .btn-nav {
+      padding: 0.65rem 1.2rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: var(--surface-hi);
+      color: var(--text);
+      font-family: 'Geist', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-nav:hover { background: #2a3045; }
+    .btn-mark {
+      background: transparent;
+      border-color: var(--review);
+      color: #fbbf24;
+    }
+    .btn-mark:hover { background: rgba(217,119,6,0.12); }
+    .btn-mark.active { background: rgba(217,119,6,0.15); }
+    .btn-save {
+      margin-left: auto;
+      background: linear-gradient(135deg, var(--primary), #6fa3ff);
+      border-color: transparent;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 2px 12px rgba(77,142,255,0.3);
+    }
+    .btn-save:hover { transform: translateY(-1px); box-shadow: 0 4px 18px rgba(77,142,255,0.45); }
+
+    /* ══════ RIGHT: PALETTE PANEL ══════ */
+    .palette-panel {
+      width: 280px;
+      flex-shrink: 0;
+      border-left: 1px solid var(--border);
+      background: rgba(13,16,23,0.6);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .palette-header {
+      padding: 1rem 1.1rem 0.7rem;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Sora', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    /* Legend */
+    .palette-legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.35rem 0.5rem;
+      padding: 0.6rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .ld-answered    { background: var(--answered); }
+    .ld-review      { background: var(--review); }
+    .ld-current     { background: var(--primary); }
+    .ld-not-visited { background: var(--not-visited); border: 1px solid rgba(255,255,255,0.1); }
+
+    /* Grid */
+    .palette-grid-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.7rem 0.9rem;
+    }
+    .palette-grid-wrap::-webkit-scrollbar { width: 4px; }
+    .palette-grid-wrap::-webkit-scrollbar-track { background: transparent; }
+    .palette-grid-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.45rem;
+    }
+    .p-btn {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: var(--not-visited);
+      color: var(--text-muted);
+      font-family: 'Sora', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .p-btn:hover { transform: scale(1.05); }
+    .p-btn.answered    { background: var(--answered); color: #fff; border-color: transparent; }
+    .p-btn.review      { background: var(--review);   color: #fff; border-color: transparent; }
+    .p-btn.current     { background: var(--primary);  color: #fff; border-color: transparent; box-shadow: 0 0 10px rgba(77,142,255,0.5); }
+    .p-btn.ans-review  { background: linear-gradient(135deg, var(--answered), var(--review)); color:#fff; border-color:transparent; }
+
+    /* Progress + Submit */
+    .palette-footer {
+      padding: 0.8rem 1.1rem;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .progress-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+    .progress-bar {
+      height: 5px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 0.9rem;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), #00e5d4);
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 0.85rem;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      font-family: 'Sora', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(239,68,68,0.35);
+    }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(239,68,68,0.5); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* ══════ LOADING / ERROR SCREEN ══════ */
+    .screen-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      z-index: 500;
+    }
+    .screen-overlay.hidden { display: none; }
+    .loading-spinner {
+      width: 48px; height: 48px;
+      border: 3px solid rgba(77,142,255,0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 0.9rem; color: var(--text-muted); }
+
+    /* ══════ CONFIRM DIALOG ══════ */
+    .dialog-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 600;
+      backdrop-filter: blur(4px);
+    }
+    .dialog-overlay.show { display: flex; }
+    .dialog-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+    .dialog-icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
+    .dialog-title { font-family:'Sora',sans-serif; font-size:1.2rem; font-weight:700; margin-bottom:0.5rem; }
+    .dialog-msg { font-size:0.85rem; color:var(--text-muted); line-height:1.6; margin-bottom:1.5rem; }
+    .dialog-stats {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .dialog-stat {
+      background: var(--surface-hi);
+      border-radius: 8px;
+      padding: 0.5rem;
+    }
+    .dialog-stat-val { font-family:'Sora',sans-serif; font-size:1.2rem; font-weight:700; }
+    .dialog-stat-lbl { font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; }
+    .dialog-actions { display:flex; gap:0.7rem; }
+    .dialog-cancel {
+      flex:1; padding:0.7rem; border-radius:8px;
+      border:1px solid var(--border); background:var(--surface-hi);
+      color:var(--text-muted); font-family:'Geist',sans-serif;
+      font-size:0.85rem; cursor:pointer; transition:background 0.2s;
+    }
+    .dialog-cancel:hover { background:#2a3045; color:var(--text); }
+    .dialog-confirm {
+      flex:1; padding:0.7rem; border-radius:8px;
+      border:none; background:linear-gradient(135deg,#ef4444,#dc2626);
+      color:#fff; font-family:'Geist',sans-serif;
+      font-size:0.85rem; font-weight:600; cursor:pointer;
+      transition:all 0.2s;
+    }
+    .dialog-confirm:hover { transform:translateY(-1px); }
+
+    /* ══════ RESULT SCREEN ══════ */
+    .result-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 700;
+      gap: 1.2rem;
+      padding: 2rem;
+    }
+    .result-screen.show { display: flex; }
+    .result-logo { font-family:'Sora',sans-serif; font-size:1.8rem; font-weight:800; color:#adc6ff; margin-bottom:0.5rem; }
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+    }
+    .result-title { font-family:'Sora',sans-serif; font-size:1.5rem; font-weight:700; margin-bottom:0.4rem; }
+    .result-sub { font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem; }
+    .result-score-ring {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      border: 4px solid var(--primary);
+      display: flex; flex-direction:column;
+      align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      box-shadow: 0 0 30px rgba(77,142,255,0.3);
+    }
+    .result-score-val { font-family:'Sora',sans-serif; font-size:1.8rem; font-weight:800; color:var(--primary); }
+    .result-score-lbl { font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; }
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .result-stat {
+      background: var(--surface-hi);
+      border-radius: 10px;
+      padding: 0.8rem;
+    }
+    .result-stat-val { font-family:'Sora',sans-serif; font-size:1.3rem; font-weight:700; }
+    .result-stat-lbl { font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-top:0.2rem; }
+    .result-stat.green .result-stat-val { color:#4ade80; }
+    .result-stat.red   .result-stat-val { color:#f87171; }
+    .btn-home {
+      width:100%; padding:0.85rem; border-radius:10px;
+      border:none; background:linear-gradient(135deg,#4d8eff,#6fa3ff);
+      color:#fff; font-family:'Sora',sans-serif; font-size:0.9rem;
+      font-weight:600; cursor:pointer; transition:all 0.2s;
+    }
+    .btn-home:hover { transform:translateY(-2px); }
+
+    /* ══════ RESPONSIVE ══════ */
+    @media (max-width: 768px) {
+      html, body { overflow: auto; }
+      .exam-layout { flex-direction: column; height: auto; overflow: auto; }
+      .palette-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+      .palette-grid { grid-template-columns: repeat(6,1fr); }
+      .question-panel { overflow: visible; }
+    }
+    @media (max-width: 480px) {
+      .topbar { padding: 0 0.8rem; }
+      .series-id { font-size: 0.75rem; }
+      .candidate-name { font-size: 0.72rem; }
+      .candidate-id { display: none; }
+      .question-panel { padding: 0.8rem 0.8rem 0; }
+      .palette-grid { grid-template-columns: repeat(5,1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div class="screen-overlay" id="loadingScreen">
+  <div class="loading-spinner" id="loadingSpinner"></div>
+  <div class="loading-text" id="loadingText">Loading exam questions...</div>
+  <button id="startFullscreenBtn" style="display: none; padding: 0.95rem 2rem; border-radius: 12px; border: none; background: linear-gradient(135deg, #4d8eff, #6fa3ff); color: #fff; font-family: 'Sora', sans-serif; font-size: 1.05rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(77, 142, 255, 0.4); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+    🚀 Enter Secure Exam Mode
+  </button>
+</div>
+
+<!-- Confirm Submit Dialog -->
+<div class="dialog-overlay" id="submitDialog">
+  <div class="dialog-box">
+    <div class="dialog-icon">⚠️</div>
+    <div class="dialog-title">Submit Exam?</div>
+    <div class="dialog-msg">Are you sure you want to submit? You cannot change answers after submission.</div>
+    <div class="dialog-stats">
+      <div class="dialog-stat">
+        <div class="dialog-stat-val" id="dlg-answered" style="color:#4ade80">0</div>
+        <div class="dialog-stat-lbl">Answered</div>
+      </div>
+      <div class="dialog-stat">
+        <div class="dialog-stat-val" id="dlg-review" style="color:#fbbf24">0</div>
+        <div class="dialog-stat-lbl">For Review</div>
+      </div>
+      <div class="dialog-stat">
+        <div class="dialog-stat-val" id="dlg-unanswered" style="color:#f87171">0</div>
+        <div class="dialog-stat-lbl">Not Answered</div>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button class="dialog-cancel" id="cancelSubmit">Cancel</button>
+      <button class="dialog-confirm" id="confirmSubmit">Submit Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Exit Confirmation Dialog -->
+<div class="dialog-overlay" id="exitWarnDialog">
+  <div class="dialog-box">
+    <div class="dialog-icon" style="color: var(--danger);">⚠️</div>
+    <div class="dialog-title" style="color: var(--danger); font-family: 'Sora', sans-serif; font-size: 1.25rem; font-weight: 700; margin-bottom: 0.6rem;">Sandbox Exit Warning</div>
+    <div class="dialog-msg" style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1.5rem;">
+      Are you sure you want to end the test? Exiting fullscreen or switching tabs is not allowed. Click "No" to return to the test, or "Yes" to submit and exit.
+    </div>
+    <div class="dialog-actions" style="display: flex; gap: 0.8rem;">
+      <button class="dialog-cancel" id="confirmNoExit" style="flex: 1; padding: 0.75rem; border-radius: 10px; border: 1px solid var(--border); background: var(--answered); color: #fff; font-family: 'Geist', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+        No, Stay in Test
+      </button>
+      <button class="dialog-confirm" id="confirmYesExit" style="flex: 1; padding: 0.75rem; border-radius: 10px; border: none; background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; font-family: 'Geist', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+        Yes, End Test
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Result Screen -->
+<div class="result-screen" id="resultScreen">
+  <div class="result-logo">Futrix</div>
+  <div class="result-card">
+    <div class="result-title">Exam Submitted! 🎉</div>
+    <p class="result-sub">Your responses have been saved successfully.</p>
+    <div class="result-score-ring">
+      <div class="result-score-val" id="res-score">0</div>
+      <div class="result-score-lbl">Score</div>
+    </div>
+    <!-- XP earned badge -->
+    <div style="text-align:center;margin:-0.5rem 0 1rem;font-family:'Sora',sans-serif;font-size:0.95rem;font-weight:700" id="res-xp">+0 XP</div>
+    <div class="result-grid">
+      <div class="result-stat green">
+        <div class="result-stat-val" id="res-correct">0</div>
+        <div class="result-stat-lbl">Correct (+1 XP each)</div>
+      </div>
+      <div class="result-stat red">
+        <div class="result-stat-val" id="res-wrong">0</div>
+        <div class="result-stat-lbl">Wrong (-0.25 XP each)</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-val" id="res-skipped">0</div>
+        <div class="result-stat-lbl">Skipped</div>
+      </div>
+    </div>
+    <button class="btn-home" onclick="window.location.href='instruction.html'">Back to Dashboard</button>
+  </div>
+</div>
+
+
+<!-- Top Bar -->
+<div class="topbar" id="topbar">
+  <div style="display: flex; align-items: center; gap: 1.5rem;">
+    <a href="#" class="logo">Fut<span>rix</span></a>
+    <div class="series-id" id="seriesId">TS-8842-QUANT</div>
+  </div>
+  <div class="timer-badge" id="timerBadge">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="timerDisplay">60:00</span>
+  </div>
+  <div class="candidate-info">
+    <div class="candidate-details">
+      <div class="candidate-name" id="topCandidateName">Pilot</div>
+      <div class="candidate-id" id="topCandidateId">CANDIDATE ID: —</div>
+    </div>
+    <div class="avatar" id="topAvatar">P</div>
+  </div>
+</div>
+
+<!-- Exam Layout -->
+<div class="exam-layout" id="examLayout" style="display:none">
+
+  <!-- ── LEFT: Question ── -->
+  <div class="question-panel">
+
+    <div class="q-header">
+      <div class="q-number" id="qNumber">Question 1</div>
+      <div class="marks-badge">
+        <span id="marksPos">+4 Marks</span> | <em id="marksNeg">-1 Negative</em>
+      </div>
+    </div>
+
+    <div class="q-box">
+      <p class="q-text" id="qText">Loading question...</p>
+    </div>
+
+    <div class="options-list" id="optionsList">
+      <!-- Injected by JS -->
+    </div>
+
+    <div class="nav-bar">
+      <button class="btn-nav" id="btnPrev" onclick="goTo(currentQ - 1)">◀ Previous</button>
+      <button class="btn-nav btn-mark" id="btnMark" onclick="toggleMark()">Mark for Review</button>
+      <button class="btn-nav" onclick="clearAnswer()">Clear Response</button>
+      <button class="btn-nav btn-save" id="btnNext" onclick="saveAndNext()">Save &amp; Next ▶</button>
+    </div>
+
+  </div>
+
+  <!-- ── RIGHT: Palette ── -->
+  <div class="palette-panel">
+    <div class="palette-header">Question Palette</div>
+
+    <div class="palette-legend">
+      <div class="legend-item"><div class="legend-dot ld-answered"></div> Answered</div>
+      <div class="legend-item"><div class="legend-dot ld-not-visited"></div> Not Visited</div>
+      <div class="legend-item"><div class="legend-dot ld-review"></div> Review</div>
+      <div class="legend-item"><div class="legend-dot ld-current"></div> Current</div>
+    </div>
+
+    <div class="palette-grid-wrap">
+      <div class="palette-grid" id="paletteGrid"></div>
+    </div>
+
+    <div class="palette-footer">
+      <div class="progress-label">Overall Progress</div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <button class="btn-submit" id="btnSubmit" onclick="openSubmitDialog()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Submit Test
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   CONFIGURATION — Update these values
+═══════════════════════════════════════════════ */
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysnDWGpDmNvSYvnl9o_SezWAijjXYcV2Vp-47MxmYY3z8pXTLGP82DO3xg1wQ9iQs1/exec';
+
+// Load config from sessionStorage (set by instruction.html via Apps Script)
+const _savedCfg = JSON.parse(sessionStorage.getItem('futrix_exam_config') || '{}');
+
+const EXAM_CONFIG = {
+  seriesId:     _savedCfg.seriesId  || 'TS-8842-QUANT',
+  totalTime:    (_savedCfg.duration || 30) * 60,   // convert mins → seconds
+  marksCorrect: 1,               // +1 per correct
+  marksWrong:  -0.25,            // -0.25 per wrong
+};
+
+
+
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+let questions   = [];
+let answers     = {};   // { qIndex: 'A'|'B'|'C'|'D' }
+let marked      = {};   // { qIndex: true }
+let visited     = {};   // { qIndex: true }
+let currentQ    = 0;
+let timerLeft   = EXAM_CONFIG.totalTime;
+let timerHandle = null;
+let submitted   = false;
+
+const user = JSON.parse(sessionStorage.getItem('futrix_user') || '{}');
+
+/* ═══════════════════════════════════════════════
+   AUTH GUARD
+═══════════════════════════════════════════════ */
+if (!user.name) {
+  window.location.href = 'login.html';
+}
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  // Populate candidate info
+  document.getElementById('topCandidateName').textContent = user.name || 'Pilot';
+  document.getElementById('topCandidateId').textContent   = 'ID: ' + (user.email || '—').split('@')[0].toUpperCase();
+  document.getElementById('topAvatar').textContent        = (user.name || 'P').charAt(0).toUpperCase();
+  document.getElementById('seriesId').textContent         = EXAM_CONFIG.seriesId;
+
+  loadQuestions();
+});
+
+/* ═══════════════════════════════════════════════
+   NETWORK HELPERS
+═══════════════════════════════════════════════ */
+
+// JSONP (works with Apps Script callback support)
+function jsonpFetch(baseUrl, params, cbName) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => { cleanup(); reject(new Error('Timeout')); }, 15000);
+    window[cbName] = (data) => { cleanup(); resolve(data); };
+    function cleanup() {
+      clearTimeout(t);
+      delete window[cbName];
+      const el = document.getElementById('_examjsonp');
+      if (el) el.remove();
+    }
+    const qs = params ? '&' + Object.keys(params).map(k =>
+      encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&') : '';
+    const s = document.createElement('script');
+    s.id    = '_examjsonp';
+    s.src   = baseUrl + qs + '&callback=' + cbName;
+    s.onerror = () => { cleanup(); reject(new Error('Script load failed')); };
+    document.head.appendChild(s);
+  });
+}
+
+// Plain fetch fallback (works when Apps Script has CORS)
+async function plainFetch(url) {
+  const ctrl = new AbortController();
+  const t    = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const res  = await fetch(url, { signal: ctrl.signal, redirect: 'follow' });
+    const text = await res.text();
+    clearTimeout(t);
+    // Strip JSONP wrapper if present: funcName({...})
+    const cleaned = text.trim()
+      .replace(/^[a-zA-Z_$][a-zA-Z0-9_$.]*\s*\(/, '')
+      .replace(/\)\s*;?\s*$/, '');
+    return JSON.parse(cleaned);
+  } catch (e) {
+    clearTimeout(t);
+    throw e;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   LOAD QUESTIONS
+═══════════════════════════════════════════════ */
+async function loadQuestions() {
+  const baseUrl = APPS_SCRIPT_URL;
+  const params  = { action: 'questions' };
+  let data      = null;
+
+  // Strategy 1: JSONP
+  try {
+    data = await jsonpFetch(baseUrl, params, 'fq_' + Date.now());
+  } catch (err1) {
+    console.warn('JSONP failed:', err1.message, '— trying fetch...');
+    // Strategy 2: Plain fetch
+    try {
+      data = await plainFetch(baseUrl + '?action=questions');
+    } catch (err2) {
+      console.error('Fetch also failed:', err2.message);
+    }
+  }
+
+  if (!data) {
+    showLoadError(
+      '⚠️ Google Apps Script Update Required!',
+      'Your Apps Script is missing the questions handler. Please follow the steps below:'
+    );
+    return;
+  }
+
+  if (data.success && Array.isArray(data.questions) && data.questions.length > 0) {
+    questions = data.questions;
+    // Show Launch Button instead of starting immediately
+    const spinner = document.getElementById('loadingSpinner');
+    const loadText = document.getElementById('loadingText');
+    const launchBtn = document.getElementById('startFullscreenBtn');
+    if (spinner) spinner.style.display = 'none';
+    if (loadText) {
+      loadText.innerHTML = '🎯 Sandbox Ready!<br><span style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal; display: block; margin-top: 0.5rem;">To start the test, please launch in secure sandbox mode. This will lock your browser into fullscreen to prevent tab switching.</span>';
+      loadText.style.marginBottom = '1.5rem';
+    }
+    if (launchBtn) {
+      launchBtn.style.display = 'block';
+      launchBtn.onclick = () => {
+        requestSandboxFullscreen();
+      };
+    }
+  } else {
+    const msg = data.message || 'No data was found in the Questions sheet.';
+    showLoadError('Failed to load questions', msg);
+  }
+}
+
+function showLoadError(title, detail) {
+  const lo = document.getElementById('loadingScreen');
+  lo.innerHTML = `
+    <div style="font-size:2.5rem;margin-bottom:0.6rem">⚠️</div>
+    <div style="font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:700;color:#e1e2ec;margin-bottom:0.5rem">${title}</div>
+    <div style="font-size:0.82rem;color:#6b7280;max-width:380px;text-align:center;line-height:1.6;margin-bottom:1.4rem">${detail}</div>
+    <div style="background:#1a1f2e;border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:1rem 1.4rem;max-width:400px;text-align:left;font-size:0.78rem;color:#9ca3af;line-height:1.8;margin-bottom:1.2rem">
+      <b style="color:#e1e2ec">How to Update Apps Script:</b><br>
+      1. Open Google Apps Script (Extensions → Apps Script)<br>
+      2. Paste the entire updated script into Code.gs (refer to Apps_Script_Code.js)<br>
+      3. Deploy → Manage Deployments → Edit → Choose "New version" → Deploy<br><br>
+      <b style="color:#e1e2ec">Prepare Google Sheet Tabs:</b><br>
+      4. Create a sheet tab named <b style="color:#adc6ff">"Questions"</b> in your Google Sheet<br>
+      5. Structure columns as: Q.No | Question | OptA | OptB | OptC | OptD | Correct | Marks | Negative
+    </div>
+    <button onclick="location.reload()" style="padding:0.7rem 2rem;border-radius:8px;border:none;background:linear-gradient(135deg,#4d8eff,#6fa3ff);color:#fff;font-family:'Sora',sans-serif;font-size:0.88rem;font-weight:600;cursor:pointer">
+      🔄 Retry
+    </button>
+  `;
+}
+
+
+/* ═══════════════════════════════════════════════
+   INIT EXAM
+═══════════════════════════════════════════════ */
+function initExam() {
+  document.getElementById('loadingScreen').classList.add('hidden');
+  document.getElementById('examLayout').style.display = 'flex';
+
+  buildPalette();
+  visited[0] = true;
+  renderQuestion(0);
+  startTimer();
+}
+
+/* ═══════════════════════════════════════════════
+   SECURE SANDBOX & FULLSCREEN MANAGEMENT
+   ═══════════════════════════════════════════════ */
+function requestSandboxFullscreen() {
+  const docEl = document.documentElement;
+  const requestFS = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+  if (requestFS) {
+    requestFS.call(docEl)
+      .then(() => {
+        initExam();
+      })
+      .catch(err => {
+        console.warn('Fullscreen request rejected or failed:', err);
+        // Fallback to init exam anyway so the candidate is not blocked
+        initExam();
+      });
+  } else {
+    initExam(); // Fallback
+  }
+}
+
+let isExitWarningOpen = false;
+
+function triggerExitWarning() {
+  if (submitted || isExitWarningOpen) return;
+  isExitWarningOpen = true;
+  document.getElementById('exitWarnDialog').classList.add('show');
+}
+
+// Dialog buttons binding
+document.getElementById('confirmNoExit').onclick = () => {
+  document.getElementById('exitWarnDialog').classList.remove('show');
+  isExitWarningOpen = false;
+  // Re-enter fullscreen to keep sandboxed state
+  const docEl = document.documentElement;
+  const requestFS = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+  if (requestFS && !document.fullscreenElement) {
+    requestFS.call(docEl).catch(err => console.warn('Re-entering fullscreen failed:', err));
+  }
+};
+
+document.getElementById('confirmYesExit').onclick = () => {
+  document.getElementById('exitWarnDialog').classList.remove('show');
+  isExitWarningOpen = false;
+  // Submit the exam (saves current progress/score) and redirect
+  submitExam().then(() => {
+    window.location.href = 'instruction.html';
+  });
+};
+
+// Fullscreen Exit Detection
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && !submitted && !isExitWarningOpen) {
+    triggerExitWarning();
+  }
+});
+document.addEventListener('webkitfullscreenchange', () => {
+  if (!document.webkitFullscreenElement && !submitted && !isExitWarningOpen) {
+    triggerExitWarning();
+  }
+});
+document.addEventListener('mozfullscreenchange', () => {
+  if (!document.mozFullScreenElement && !submitted && !isExitWarningOpen) {
+    triggerExitWarning();
+  }
+});
+document.addEventListener('MSFullscreenChange', () => {
+  if (!document.msFullscreenElement && !submitted && !isExitWarningOpen) {
+    triggerExitWarning();
+  }
+});
+
+// Tab Switch / Minimize / Window Blur Detection
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && !submitted && !isExitWarningOpen) {
+    triggerExitWarning();
+  }
+});
+window.addEventListener('blur', () => {
+  if (!submitted && !isExitWarningOpen) {
+    triggerExitWarning();
+  }
+});
+
+/* ═══════════════════════════════════════════════
+   TIMER
+═══════════════════════════════════════════════ */
+function startTimer() {
+  timerHandle = setInterval(() => {
+    timerLeft--;
+    const m   = Math.floor(timerLeft / 60);
+    const s   = timerLeft % 60;
+    document.getElementById('timerDisplay').textContent =
+      String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+
+    // Warning at 5 minutes
+    if (timerLeft <= 300) {
+      document.getElementById('timerBadge').classList.add('warning');
+    }
+    // Auto submit at 0
+    if (timerLeft <= 0) {
+      clearInterval(timerHandle);
+      submitExam();
+    }
+  }, 1000);
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER QUESTION
+═══════════════════════════════════════════════ */
+function renderQuestion(idx) {
+  if (idx < 0 || idx >= questions.length) return;
+
+  currentQ        = idx;
+  visited[idx]    = true;
+  const q         = questions[idx];
+  const saved     = answers[idx];
+  const isMarked  = marked[idx];
+
+  document.getElementById('qNumber').textContent  = 'Question ' + (idx + 1);
+  document.getElementById('qText').textContent    = q.question;
+  document.getElementById('marksPos').textContent = '+' + (q.marks || EXAM_CONFIG.marksCorrect) + ' Marks';
+  document.getElementById('marksNeg').textContent = (q.negative || EXAM_CONFIG.marksWrong) + ' Negative';
+
+  // Mark button state
+  const markBtn = document.getElementById('btnMark');
+  markBtn.classList.toggle('active', !!isMarked);
+  markBtn.textContent = isMarked ? '★ Marked' : 'Mark for Review';
+
+  // Options
+  const opts = document.getElementById('optionsList');
+  opts.innerHTML = '';
+  const labels = ['A','B','C','D'];
+  const optKeys = ['optionA','optionB','optionC','optionD'];
+
+  optKeys.forEach((key, i) => {
+    if (!q[key]) return;
+    const btn = document.createElement('button');
+    btn.className = 'option-btn' + (saved === labels[i] ? ' selected' : '');
+    btn.innerHTML = `<div class="option-label">${labels[i]}</div><span>${q[key]}</span>`;
+    btn.onclick   = () => selectAnswer(labels[i]);
+    opts.appendChild(btn);
+  });
+
+  // Nav buttons
+  document.getElementById('btnPrev').disabled = (idx === 0);
+  document.getElementById('btnNext').textContent =
+    idx === questions.length - 1 ? 'Save & Finish ✓' : 'Save & Next ▶';
+
+  updatePalette();
+  updateProgress();
+}
+
+/* ═══════════════════════════════════════════════
+   ANSWER MANAGEMENT
+═══════════════════════════════════════════════ */
+function selectAnswer(label) {
+  answers[currentQ] = label;
+  renderQuestion(currentQ);
+}
+
+function clearAnswer() {
+  delete answers[currentQ];
+  renderQuestion(currentQ);
+}
+
+function toggleMark() {
+  if (marked[currentQ]) delete marked[currentQ];
+  else marked[currentQ] = true;
+  renderQuestion(currentQ);
+}
+
+function saveAndNext() {
+  if (currentQ < questions.length - 1) {
+    goTo(currentQ + 1);
+  } else {
+    openSubmitDialog();
+  }
+}
+
+function goTo(idx) {
+  if (idx < 0 || idx >= questions.length) return;
+  visited[idx] = true;
+  renderQuestion(idx);
+}
+
+/* ═══════════════════════════════════════════════
+   PALETTE
+═══════════════════════════════════════════════ */
+function buildPalette() {
+  const grid = document.getElementById('paletteGrid');
+  grid.innerHTML = '';
+  questions.forEach((_, i) => {
+    const btn = document.createElement('button');
+    btn.className   = 'p-btn';
+    btn.textContent = i + 1;
+    btn.id          = 'pb-' + i;
+    btn.onclick     = () => goTo(i);
+    grid.appendChild(btn);
+  });
+}
+
+function updatePalette() {
+  questions.forEach((_, i) => {
+    const btn = document.getElementById('pb-' + i);
+    if (!btn) return;
+    btn.className = 'p-btn';
+    if (i === currentQ)      { btn.classList.add('current'); return; }
+    if (answers[i] && marked[i]) { btn.classList.add('ans-review'); return; }
+    if (answers[i])          { btn.classList.add('answered'); return; }
+    if (marked[i])           { btn.classList.add('review');   return; }
+  });
+}
+
+function updateProgress() {
+  const answered = Object.keys(answers).length;
+  const pct = questions.length ? (answered / questions.length) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+/* ═══════════════════════════════════════════════
+   SUBMIT
+═══════════════════════════════════════════════ */
+function openSubmitDialog() {
+  const answered   = Object.keys(answers).length;
+  const reviewOnly = Object.keys(marked).filter(i => !answers[i]).length;
+  const unanswered = questions.length - answered;
+
+  document.getElementById('dlg-answered').textContent   = answered;
+  document.getElementById('dlg-review').textContent     = Object.keys(marked).length;
+  document.getElementById('dlg-unanswered').textContent = unanswered;
+  document.getElementById('submitDialog').classList.add('show');
+}
+
+document.getElementById('cancelSubmit').onclick  = () =>
+  document.getElementById('submitDialog').classList.remove('show');
+
+document.getElementById('confirmSubmit').onclick = () => {
+  document.getElementById('submitDialog').classList.remove('show');
+  submitExam();
+};
+
+async function submitExam() {
+  if (submitted) return;
+  submitted = true;
+  clearInterval(timerHandle);
+
+  // Show loading on submit button
+  const sb = document.getElementById('btnSubmit');
+  sb.disabled     = true;
+  sb.textContent  = 'Submitting...';
+
+  // Calculate score: +1 correct, -0.25 wrong
+  let correct = 0, wrong = 0, skipped = 0;
+  questions.forEach((q, i) => {
+    const ans = answers[i];
+    if (!ans) { skipped++; return; }
+    if (ans === q.correct) correct++;
+    else wrong++;
+  });
+
+  const score    = parseFloat((correct * 1 - wrong * 0.25).toFixed(2));
+  const xpEarned = score;   // XP = score (1 per correct, -0.25 per wrong)
+  const timeTaken = EXAM_CONFIG.totalTime - timerLeft;
+
+  // Build payload
+  const payload = {
+    candidateName:  user.name  || '',
+    candidateEmail: user.email || '',
+    candidatePhone: user.phone || '',
+    seriesId:       EXAM_CONFIG.seriesId,
+    answers:        JSON.stringify(answers),
+    correct,
+    wrong,
+    skipped,
+    score,
+    xpEarned,
+    totalQuestions: questions.length,
+    timeTaken,
+  };
+
+  // Save to sheet via Apps Script (best-effort, fire and forget)
+  try {
+    await jsonpFetch(APPS_SCRIPT_URL, { action: 'submit', ...payload }, 'fsub_' + Date.now());
+  } catch (e) {
+    // Try plain fetch as fallback
+    try {
+      const params = Object.keys(payload)
+        .map(k => `${encodeURIComponent(k)}=${encodeURIComponent(payload[k])}`)
+        .join('&');
+      await plainFetch(`${APPS_SCRIPT_URL}?action=submit&${params}`);
+    } catch (e2) {
+      console.warn('Response save failed (exam still complete):', e2.message);
+    }
+  }
+
+  showResult(correct, wrong, skipped, score);
+  try {
+    localStorage.setItem('attempted_' + EXAM_CONFIG.seriesId, 'true');
+  } catch (e) {
+    console.warn('LocalStorage save failed:', e);
+  }
+}
+
+function showResult(correct, wrong, skipped, score) {
+  const total       = questions.length;                      // max = 1 per question
+  const xpEarned    = score;
+  const displayScore = score.toFixed(2);                   // e.g. 0.75
+
+  document.getElementById('res-score').textContent   = displayScore + ' / ' + total;
+  document.getElementById('res-correct').textContent = correct;
+  document.getElementById('res-wrong').textContent   = wrong;
+  document.getElementById('res-skipped').textContent = skipped;
+
+  // Update XP in sessionStorage so instruction page reflects new total
+  try {
+    const u = JSON.parse(sessionStorage.getItem('futrix_user') || '{}');
+    u.xp = parseFloat(((u.xp || 100) + xpEarned).toFixed(2));
+    sessionStorage.setItem('futrix_user', JSON.stringify(u));
+  } catch(_) {}
+
+  // Show XP earned on result screen
+  const xpEl = document.getElementById('res-xp');
+  if (xpEl) {
+    xpEl.textContent = (xpEarned >= 0 ? '+' : '') + xpEarned.toFixed(2) + ' XP';
+    xpEl.style.color = xpEarned >= 0 ? '#4ade80' : '#f87171';
+  }
+
+  document.getElementById('resultScreen').classList.add('show');
+}
+
+/* ═══════════════════════════════════════════════
+   PREVENT PAGE LEAVE
+═══════════════════════════════════════════════ */
+window.addEventListener('beforeunload', (e) => {
+  if (!submitted && questions.length > 0) {
+    e.preventDefault();
+    e.returnValue = 'Exam is in progress. Are you sure you want to leave?';
+  }
+});
+</script>
+</body>
+</html>

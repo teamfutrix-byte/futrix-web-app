@@ -1,0 +1,161 @@
+function doGet(e) {
+  var callback = e.parameter.callback || '';
+  var action   = e.parameter.action   || '';
+  var result;
+  try {
+    if      (action === 'questions') result = getQuestions();
+    else if (action === 'submit')    result = saveResponse(e);
+    else if (action === 'getConfig') result = getExamConfig();
+    else if (action === 'checkAttempt') result = checkAttempt(e);
+    else if (action === 'checkRegistration') result = checkRegistration(e);
+    else                             result = verifyLogin(e);
+  } catch (err) {
+    result = { success: false, message: 'Error: ' + err.message };
+  }
+  var json = JSON.stringify(result);
+  if (callback) return ContentService.createTextOutput(callback + '(' + json + ')').setMimeType(ContentService.MimeType.JAVASCRIPT);
+  return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+}
+
+function getXPColumn(sheet) {
+  var lastCol = sheet.getLastColumn(); if (lastCol === 0) return 6;
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  for (var i = 0; i < headers.length; i++) { if (String(headers[i]).trim() === 'XP Points') return i + 1; }
+  var newCol = lastCol + 1; sheet.getRange(1, newCol).setValue('XP Points'); sheet.getRange(1, newCol).setFontWeight('bold'); return newCol;
+}
+
+function verifyLogin(e) {
+  var email = (e.parameter.email || '').toLowerCase().trim();
+  var phone = (e.parameter.phone || '').trim();
+  if (!email || !phone) return { success: false, message: 'Please enter both email and mobile number.' };
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  var data  = sheet.getDataRange().getValues();
+  var xpCol = getXPColumn(sheet);
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][2]).toLowerCase().trim() === email && String(data[i][3]).trim() === phone) {
+      var xp = parseFloat(data[i][xpCol - 1]) || 0;
+      if (xp === 0) { xp = 100; sheet.getRange(i + 1, xpCol).setValue(100); }
+      return { success: true, name: String(data[i][1]).trim(), email: email, phone: phone, xp: xp };
+    }
+  }
+  return { success: false, message: 'Invalid email or mobile number. Please try again.' };
+}
+
+function getQuestions() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Questions');
+  if (!sheet) return { success: false, message: 'Sheet "Questions" not found.' };
+  var data = sheet.getDataRange().getValues(); var questions = [];
+  for (var i = 1; i < data.length; i++) {
+    if (!data[i][1]) continue;
+    questions.push({ no: data[i][0]||i, question: String(data[i][1]).trim(),
+      optionA: String(data[i][2]||'').trim(), optionB: String(data[i][3]||'').trim(),
+      optionC: String(data[i][4]||'').trim(), optionD: String(data[i][5]||'').trim(),
+      correct: String(data[i][6]||'').trim().toUpperCase(), marks: Number(data[i][7])||1, negative: Number(data[i][8])||-0.25 });
+  }
+  if (questions.length === 0) return { success: false, message: 'No questions found in the Questions sheet.' };
+  return { success: true, questions: questions };
+}
+
+// ── EXAM CONFIG: Fetch from "Exam Config" tab ──
+function getExamConfig() {
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Exam Config');
+  if (!sheet) return { success: false, message: 'Sheet "Exam Config" not found.' };
+  var data = sheet.getDataRange().getValues();
+  var cfg  = {};
+  for (var i = 0; i < data.length; i++) {
+    cfg[String(data[i][0]).trim()] = data[i][1];
+  }
+  return {
+    success:   true,
+    seriesId:  String(cfg['Series ID']       || '#FX-0001'),
+    questions: Number(cfg['Questions']        || 20),
+    duration:  Number(cfg['Duration (mins)'] || 30),
+    maxMarks:  Number(cfg['Max Marks']        || 20)
+  };
+}
+
+function saveResponse(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(); var sheet = ss.getSheetByName('Exam Responses');
+  var headers = ['Timestamp','Candidate Name','Email','Phone','Series ID','Score','Correct','Wrong','Skipped','Total Questions','Time Taken','Answers'];
+  if (!sheet) {
+    sheet = ss.insertSheet('Exam Responses'); sheet.appendRow(headers);
+    var hr = sheet.getRange(1,1,1,headers.length); hr.setFontWeight('bold'); hr.setBackground('#1a73e8'); hr.setFontColor('#ffffff'); sheet.setFrozenRows(1);
+  } else {
+    if (String(sheet.getRange(1,1).getValue()) !== 'Timestamp') {
+      sheet.insertRowBefore(1); sheet.getRange(1,1,1,headers.length).setValues([headers]);
+      var hr2 = sheet.getRange(1,1,1,headers.length); hr2.setFontWeight('bold'); hr2.setBackground('#1a73e8'); hr2.setFontColor('#ffffff'); sheet.setFrozenRows(1);
+    }
+  }
+  sheet.appendRow([new Date(), e.parameter.candidateName||'', e.parameter.candidateEmail||'', e.parameter.candidatePhone||'',
+    e.parameter.seriesId||'', Number(e.parameter.score||0), Number(e.parameter.correct||0), Number(e.parameter.wrong||0),
+    Number(e.parameter.skipped||0), Number(e.parameter.totalQuestions||0), e.parameter.timeTaken||'', e.parameter.answers||'{}']);
+  var xpEarned = parseFloat(e.parameter.xpEarned || 0);
+  if (xpEarned !== 0) {
+    var regSheet = ss.getSheets()[0]; var regData = regSheet.getDataRange().getValues(); var xpCol = getXPColumn(regSheet);
+    var uEmail = (e.parameter.candidateEmail||'').toLowerCase().trim();
+    for (var i = 1; i < regData.length; i++) {
+      if (String(regData[i][2]).toLowerCase().trim() === uEmail) {
+        var newXP = Math.max(0, parseFloat(((parseFloat(regData[i][xpCol-1])||100) + xpEarned).toFixed(2)));
+        regSheet.getRange(i+1, xpCol).setValue(newXP); break;
+      }
+    }
+  }
+  return { success: true };
+}
+// ── CHECK ATTEMPT: Check if test is already taken once ──
+function checkAttempt(e) {
+  var email    = (e.parameter.email    || '').toLowerCase().trim();
+  var seriesId = (e.parameter.seriesId || '').trim();
+
+  if (!email || !seriesId)
+    return { attempted: false };
+
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Exam Responses');
+
+  if (!sheet) return { attempted: false };
+
+  var data = sheet.getDataRange().getValues();
+
+  // Column C = Email (index 2), Column E = Series ID (index 4)
+  for (var i = 1; i < data.length; i++) {
+    var rowEmail  = String(data[i][2] || '').toLowerCase().trim();
+    var rowSeries = String(data[i][4] || '').trim();
+    if (rowEmail === email && rowSeries === seriesId) {
+      return { attempted: true, series: seriesId };
+    }
+  }
+
+  return { attempted: false };
+}
+
+// ── PREVENT DUPLICATE REGISTRATION: Check if email or phone is already registered ──
+function checkRegistration(e) {
+  var email = (e.parameter.email || '').toLowerCase().trim();
+  var phone = (e.parameter.phone || '').trim();
+
+  if (!email && !phone) {
+    return { success: false, message: 'Please provide email or mobile number to check.' };
+  }
+
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  var data  = sheet.getDataRange().getValues();
+
+  // Column C (index 2) = Email, Column D (index 3) = Phone
+  for (var i = 1; i < data.length; i++) {
+    var rowEmail = String(data[i][2] || '').toLowerCase().trim();
+    var rowPhone = String(data[i][3] || '').trim();
+
+    if (email && rowEmail === email) {
+      return { success: false, message: 'You are already registered with the same email ID.' };
+    }
+    if (phone && rowPhone === phone) {
+      return { success: false, message: 'You are already registered with the same mobile number.' };
+    }
+  }
+
+  return { success: true };
+}
+
+
