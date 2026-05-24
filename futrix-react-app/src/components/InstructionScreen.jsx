@@ -66,17 +66,10 @@ const InstructionScreen = ({ user, onNavigate, onShowToast, onLogout }) => {
         currentSeriesId = data.seriesId;
       }
 
-      // 2. Check if user has already attempted this series (Local Storage & Server check)
+      // 2. Check if user has already attempted this series (Server check first, then Local Storage fallback)
       const userEmail = (user.email || '').toLowerCase().trim();
       const localKeyUser = `attempted_${userEmail}_${currentSeriesId}`;
       
-      const hasLocalAttempt = localStorage.getItem(localKeyUser) === 'true';
-
-      if (hasLocalAttempt) {
-        setAlreadyAttempted(true);
-        return;
-      }
-
       // Quick check via Apps Script (database check)
       try {
         let checkRes = null;
@@ -102,15 +95,24 @@ const InstructionScreen = ({ user, onNavigate, onShowToast, onLogout }) => {
           }
         }
 
-        if (checkRes && checkRes.attempted) {
-          setAlreadyAttempted(true);
-          localStorage.setItem(localKeyUser, 'true');
+        if (checkRes) {
+          if (checkRes.attempted) {
+            setAlreadyAttempted(true);
+            localStorage.setItem(localKeyUser, 'true');
+          } else {
+            setAlreadyAttempted(false);
+            localStorage.removeItem(localKeyUser);
+          }
         } else {
-          setAlreadyAttempted(false);
+          // Fallback to local storage on network error
+          const hasLocalAttempt = localStorage.getItem(localKeyUser) === 'true';
+          setAlreadyAttempted(hasLocalAttempt);
         }
       } catch (e) {
         console.error('Error verifying attempt status:', e);
-        setAlreadyAttempted(false);
+        // Fallback to local storage on error
+        const hasLocalAttempt = localStorage.getItem(localKeyUser) === 'true';
+        setAlreadyAttempted(hasLocalAttempt);
       }
     };
 
@@ -125,36 +127,42 @@ const InstructionScreen = ({ user, onNavigate, onShowToast, onLogout }) => {
     const userEmail = (user.email || '').toLowerCase().trim();
     const localKeyUser = `attempted_${userEmail}_${seriesId}`;
 
-    let done = localStorage.getItem(localKeyUser) === 'true';
+    let done = false;
+    let checkedSuccessfully = false;
 
-    if (!done) {
-      try {
-        const check = await jsonpRequest(APPS_SCRIPT_URL, {
-          action: 'checkAttempt',
-          email: userEmail,
-          candidateEmail: userEmail,
-          emailAddress: userEmail,
-          seriesId: seriesId,
-          series: seriesId
-        });
-        if (check && check.attempted) {
-          done = true;
-        }
-      } catch (err) {
-        console.warn('Failed to verify attempt status online, trying plain fetch...', err);
-        try {
-          const url = `${APPS_SCRIPT_URL}?action=checkAttempt&email=${encodeURIComponent(userEmail)}&seriesId=${encodeURIComponent(seriesId)}`;
-          const res = await fetch(url);
-          const txt = await res.text();
-          const cleaned = txt.trim().replace(/^[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/, '').replace(/\)\s*;?\s*$/, '');
-          const check = JSON.parse(cleaned);
-          if (check && check.attempted) {
-            done = true;
-          }
-        } catch (fetchErr) {
-          console.error('Plain fetch attempt verification failed:', fetchErr);
-        }
+    try {
+      const check = await jsonpRequest(APPS_SCRIPT_URL, {
+        action: 'checkAttempt',
+        email: userEmail,
+        candidateEmail: userEmail,
+        emailAddress: userEmail,
+        seriesId: seriesId,
+        series: seriesId
+      });
+      if (check) {
+        done = check.attempted;
+        checkedSuccessfully = true;
       }
+    } catch (err) {
+      console.warn('Failed to verify attempt status online, trying plain fetch...', err);
+      try {
+        const url = `${APPS_SCRIPT_URL}?action=checkAttempt&email=${encodeURIComponent(userEmail)}&seriesId=${encodeURIComponent(seriesId)}`;
+        const res = await fetch(url);
+        const txt = await res.text();
+        const cleaned = txt.trim().replace(/^[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/, '').replace(/\)\s*;?\s*$/, '');
+        const check = JSON.parse(cleaned);
+        if (check) {
+          done = check.attempted;
+          checkedSuccessfully = true;
+        }
+      } catch (fetchErr) {
+        console.error('Plain fetch attempt verification failed:', fetchErr);
+      }
+    }
+
+    if (!checkedSuccessfully) {
+      // Fallback to local storage on network error
+      done = localStorage.getItem(localKeyUser) === 'true';
     }
 
     setIsChecking(false);
@@ -163,6 +171,7 @@ const InstructionScreen = ({ user, onNavigate, onShowToast, onLogout }) => {
       setAlreadyAttempted(true);
       localStorage.setItem(localKeyUser, 'true');
     } else {
+      localStorage.removeItem(localKeyUser);
       onNavigate('exam');
     }
   };

@@ -992,37 +992,46 @@
     const seriesId  = cfg.seriesId || '#FX-0001';
     const userEmail = (user.email || '').toLowerCase().trim();
 
-    // 1st Check: Local Storage check (candidate & series specific offline block)
     let alreadyDone = false;
-    if (localStorage.getItem('attempted_' + userEmail + '_' + seriesId) === 'true') {
-      alreadyDone = true;
-    }
 
-    // 2nd Check: Quick check via Apps Script (network check)
-    if (!alreadyDone) {
-      try {
-        const cbName = 'ftxchk_' + Date.now();
-        const result = await new Promise((res, rej) => {
-          const t = setTimeout(() => { cleanup(); res(null); }, 8000);
-          window[cbName] = (d) => { cleanup(); res(d); };
-          function cleanup() { clearTimeout(t); delete window[cbName]; const el=document.getElementById('_chkjsonp'); if(el) el.remove(); }
-          const s = document.createElement('script');
-          s.id = '_chkjsonp';
-          s.src = APPS_SCRIPT_URL + '?action=checkAttempt' +
-                  '&email=' + encodeURIComponent(userEmail) +
-                  '&candidateEmail=' + encodeURIComponent(userEmail) +
-                  '&emailAddress=' + encodeURIComponent(userEmail) +
-                  '&seriesId=' + encodeURIComponent(seriesId) +
-                  '&series=' + encodeURIComponent(seriesId) +
-                  '&callback=' + cbName;
-          s.onerror = () => { cleanup(); res(null); };
-          document.head.appendChild(s);
-        });
-        if (result && result.attempted) {
+    // Check with Google Sheets first (online source of truth)
+    try {
+      const cbName = 'ftxchk_' + Date.now();
+      const result = await new Promise((res, rej) => {
+        const t = setTimeout(() => { cleanup(); res(null); }, 8000);
+        window[cbName] = (d) => { cleanup(); res(d); };
+        function cleanup() { clearTimeout(t); delete window[cbName]; const el=document.getElementById('_chkjsonp'); if(el) el.remove(); }
+        const s = document.createElement('script');
+        s.id = '_chkjsonp';
+        s.src = APPS_SCRIPT_URL + '?action=checkAttempt' +
+                '&email=' + encodeURIComponent(userEmail) +
+                '&candidateEmail=' + encodeURIComponent(userEmail) +
+                '&emailAddress=' + encodeURIComponent(userEmail) +
+                '&seriesId=' + encodeURIComponent(seriesId) +
+                '&series=' + encodeURIComponent(seriesId) +
+                '&callback=' + cbName;
+        s.onerror = () => { cleanup(); res(null); };
+        document.head.appendChild(s);
+      });
+      if (result) {
+        if (result.attempted) {
           alreadyDone = true;
           localStorage.setItem('attempted_' + userEmail + '_' + seriesId, 'true');
+        } else {
+          alreadyDone = false;
+          localStorage.removeItem('attempted_' + userEmail + '_' + seriesId);
         }
-      } catch(_) {}
+      } else {
+        // Fallback to local storage block if network request times out/fails
+        if (localStorage.getItem('attempted_' + userEmail + '_' + seriesId) === 'true') {
+          alreadyDone = true;
+        }
+      }
+    } catch(_) {
+      // Fallback to local storage block on error
+      if (localStorage.getItem('attempted_' + userEmail + '_' + seriesId) === 'true') {
+        alreadyDone = true;
+      }
     }
 
     if (alreadyDone) {
