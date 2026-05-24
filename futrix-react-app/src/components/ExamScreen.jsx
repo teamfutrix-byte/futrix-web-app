@@ -372,9 +372,9 @@ const ExamScreen = ({ user, onNavigate, onShowToast, onUpdateXP }) => {
   if (status === 'result') {
     return (
       <div id="resultScreen" className="result-screen show">
-        <div className="result-logo">Futrix</div>
+        <div className="result-logo">Fut<span>rix</span></div>
         <div className="result-card">
-          <h2 className="result-title">Exam Submitted! 🎉</h2>
+          <div className="result-title">Exam Submitted! 🎉</div>
           <p className="result-sub">Your responses have been saved successfully.</p>
           
           <div className="result-score-ring">
@@ -427,7 +427,7 @@ const ExamScreen = ({ user, onNavigate, onShowToast, onUpdateXP }) => {
         onEndTest={() => setIsSubmitDialogOpen(true)}
       />
 
-      <div className="exam-layout" id="examLayout" style={{ display: 'flex' }}>
+      <div className="exam-layout" id="examLayout">
         {/* Left Side: Question */}
         <div className="question-panel">
           <div className="q-header">

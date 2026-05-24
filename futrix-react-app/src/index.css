@@ -1682,9 +1682,17 @@ body::before {
   padding: 1.5rem;
   overflow-y: auto;
   display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: stretch;
+  text-align: left;
+}
+
+.instruction-page-container .panels-layout {
+  display: flex;
   gap: 1.2rem;
   align-items: flex-start;
-  text-align: left;
+  width: 100%;
 }
 
 .instruction-page-container .candidate-panel {

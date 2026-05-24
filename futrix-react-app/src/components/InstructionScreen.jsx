@@ -253,11 +253,11 @@ const InstructionScreen = ({ user, onNavigate, onShowToast, onLogout }) => {
         </aside>
 
         {/* Main Content Pane */}
-        <div className="main-content" style={{ flexDirection: 'column', gap: '1.5rem', alignItems: 'stretch' }}>
+        <div className="main-content">
           {!alreadyAttempted ? (
-            <div className="panels-layout" style={{ display: 'flex', gap: '1.2rem', alignItems: 'flex-start', width: '100%' }}>
+            <div className="panels-layout">
               {/* Candidate details panel */}
-              <div className="candidate-panel" style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', width: '260px', flexShrink: 0 }}>
+              <div className="candidate-panel">
                 {/* Candidate XP score card */}
                 <div className="candidate-card">
                   <div className="candidate-tag">Candidate</div>
