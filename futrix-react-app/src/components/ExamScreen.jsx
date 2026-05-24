@@ -265,7 +265,8 @@ const ExamScreen = ({ user, onNavigate, onShowToast, onUpdateXP }) => {
     }
 
     try {
-      localStorage.setItem('attempted_' + examConfig.seriesId, 'true');
+      const userEmail = (user.email || '').toLowerCase().trim();
+      localStorage.setItem(`attempted_${userEmail}_${examConfig.seriesId}`, 'true');
       onUpdateXP(xpEarned);
     } catch (e) {
       console.warn('Local storage lock failed:', e);

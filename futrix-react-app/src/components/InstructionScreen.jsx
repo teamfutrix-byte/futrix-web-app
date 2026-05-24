@@ -37,15 +37,13 @@ const InstructionScreen = ({ user, onNavigate, onShowToast, onLogout }) => {
   const firstName = nameParts[0];
   const lastName = nameParts.slice(1).join(' ');
 
-  // Fetch config and check local storage on mount
+  // Fetch config and check attempt status on mount
   useEffect(() => {
-    const localAttempt = localStorage.getItem('attempted_' + examConfig.seriesId);
-    if (localAttempt === 'true') {
-      setAlreadyAttempted(true);
-    }
-
-    const fetchConfig = async () => {
+    const fetchConfigAndStatus = async () => {
+      let currentSeriesId = examConfig.seriesId;
       let data = null;
+
+      // 1. Fetch configuration
       try {
         data = await jsonpRequest(APPS_SCRIPT_URL, { action: 'getConfig' });
       } catch (err) {
@@ -65,14 +63,59 @@ const InstructionScreen = ({ user, onNavigate, onShowToast, onLogout }) => {
       if (data && data.success) {
         setExamConfig(data);
         sessionStorage.setItem('futrix_exam_config', JSON.stringify(data));
-        if (localStorage.getItem('attempted_' + data.seriesId) === 'true') {
-          setAlreadyAttempted(true);
+        currentSeriesId = data.seriesId;
+      }
+
+      // 2. Check if user has already attempted this series (Local Storage & Server check)
+      const userEmail = (user.email || '').toLowerCase().trim();
+      const localKeyUser = `attempted_${userEmail}_${currentSeriesId}`;
+      
+      const hasLocalAttempt = localStorage.getItem(localKeyUser) === 'true';
+
+      if (hasLocalAttempt) {
+        setAlreadyAttempted(true);
+        return;
+      }
+
+      // Quick check via Apps Script (database check)
+      try {
+        let checkRes = null;
+        try {
+          checkRes = await jsonpRequest(APPS_SCRIPT_URL, {
+            action: 'checkAttempt',
+            email: userEmail,
+            candidateEmail: userEmail,
+            emailAddress: userEmail,
+            seriesId: currentSeriesId,
+            series: currentSeriesId
+          });
+        } catch (err) {
+          console.warn('JSONP attempt verify failed, trying fetch fallback...', err);
+          try {
+            const url = `${APPS_SCRIPT_URL}?action=checkAttempt&email=${encodeURIComponent(userEmail)}&seriesId=${encodeURIComponent(currentSeriesId)}`;
+            const res = await fetch(url);
+            const txt = await res.text();
+            const cleaned = txt.trim().replace(/^[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/, '').replace(/\)\s*;?\s*$/, '');
+            checkRes = JSON.parse(cleaned);
+          } catch (fetchErr) {
+            console.error('Fetch attempt verify failed:', fetchErr);
+          }
         }
+
+        if (checkRes && checkRes.attempted) {
+          setAlreadyAttempted(true);
+          localStorage.setItem(localKeyUser, 'true');
+        } else {
+          setAlreadyAttempted(false);
+        }
+      } catch (e) {
+        console.error('Error verifying attempt status:', e);
+        setAlreadyAttempted(false);
       }
     };
 
-    fetchConfig();
-  }, [examConfig.seriesId]);
+    fetchConfigAndStatus();
+  }, [user.email]);
 
   const handleStartTest = async () => {
     if (!isChecked) return;
@@ -80,8 +123,9 @@ const InstructionScreen = ({ user, onNavigate, onShowToast, onLogout }) => {
 
     const seriesId = examConfig.seriesId;
     const userEmail = (user.email || '').toLowerCase().trim();
+    const localKeyUser = `attempted_${userEmail}_${seriesId}`;
 
-    let done = localStorage.getItem('attempted_' + seriesId) === 'true';
+    let done = localStorage.getItem(localKeyUser) === 'true';
 
     if (!done) {
       try {
@@ -117,7 +161,7 @@ const InstructionScreen = ({ user, onNavigate, onShowToast, onLogout }) => {
 
     if (done) {
       setAlreadyAttempted(true);
-      localStorage.setItem('attempted_' + seriesId, 'true');
+      localStorage.setItem(localKeyUser, 'true');
     } else {
       onNavigate('exam');
     }
