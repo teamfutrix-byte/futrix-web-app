@@ -44,18 +44,35 @@ function getXPColumn(sheet) {
   var newCol = lastCol + 1; sheet.getRange(1, newCol).setValue('XP Points'); sheet.getRange(1, newCol).setFontWeight('bold'); return newCol;
 }
 
+function getColumnIndexByName(sheet, name, defaultCol) {
+  var lastCol = sheet.getLastColumn(); if (lastCol === 0) return defaultCol;
+  var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  for (var i = 0; i < headers.length; i++) {
+    var h = String(headers[i]).toLowerCase().trim();
+    if (h.indexOf(name.toLowerCase()) !== -1) return i + 1;
+  }
+  return defaultCol;
+}
+
 function verifyLogin(e) {
   var email = (e.parameter.email || '').toLowerCase().trim();
   var phone = (e.parameter.phone || '').trim();
   if (!email || !phone) return { success: false, message: 'Please enter both email and mobile number.' };
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
   var data  = sheet.getDataRange().getValues();
-  var xpCol = getXPColumn(sheet);
+  
+  var nameCol  = getColumnIndexByName(sheet, 'name', 2);
+  var emailCol = getColumnIndexByName(sheet, 'email', 3);
+  var phoneCol = getColumnIndexByName(sheet, 'phone', 4);
+  var xpCol    = getXPColumn(sheet);
+
   for (var i = 1; i < data.length; i++) {
-    if (String(data[i][2]).toLowerCase().trim() === email && String(data[i][3]).trim() === phone) {
+    var rowEmail = String(data[i][emailCol - 1]).toLowerCase().trim();
+    var rowPhone = String(data[i][phoneCol - 1]).trim();
+    if (rowEmail === email && rowPhone === phone) {
       var xp = parseFloat(data[i][xpCol - 1]) || 0;
       if (xp === 0) { xp = 100; sheet.getRange(i + 1, xpCol).setValue(100); }
-      return { success: true, name: String(data[i][1]).trim(), email: email, phone: phone, xp: xp };
+      return { success: true, name: String(data[i][nameCol - 1]).trim(), email: email, phone: phone, xp: xp };
     }
   }
   return { success: false, message: 'Invalid email or mobile number. Please try again.' };
@@ -133,8 +150,9 @@ function saveResponse(e) {
   var xpEarned = parseFloat(e.parameter.xpEarned || 0);
   if (xpEarned !== 0) {
     var regSheet = ss.getSheets()[0]; var regData = regSheet.getDataRange().getValues(); var xpCol = getXPColumn(regSheet);
+    var emailCol = getColumnIndexByName(regSheet, 'email', 3);
     for (var i = 1; i < regData.length; i++) {
-      if (String(regData[i][2]).toLowerCase().trim() === candidateEmail) {
+      if (String(regData[i][emailCol-1]).toLowerCase().trim() === candidateEmail) {
         var newXP = Math.max(0, parseFloat(((parseFloat(regData[i][xpCol-1])||100) + xpEarned).toFixed(2)));
         regSheet.getRange(i+1, xpCol).setValue(newXP); break;
       }
@@ -181,10 +199,12 @@ function checkRegistration(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
   var data  = sheet.getDataRange().getValues();
 
-  // Column C (index 2) = Email, Column D (index 3) = Phone
+  var emailCol = getColumnIndexByName(sheet, 'email', 3);
+  var phoneCol = getColumnIndexByName(sheet, 'phone', 4);
+
   for (var i = 1; i < data.length; i++) {
-    var rowEmail = String(data[i][2] || '').toLowerCase().trim();
-    var rowPhone = String(data[i][3] || '').trim();
+    var rowEmail = String(data[i][emailCol - 1] || '').toLowerCase().trim();
+    var rowPhone = String(data[i][phoneCol - 1] || '').trim();
 
     if (email && rowEmail === email) {
       return { success: false, message: 'You are already registered with the same email ID.' };
