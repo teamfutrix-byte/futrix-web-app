@@ -824,6 +824,9 @@
               <li>Read every question carefully &amp; manage time wisely</li>
               <li>Submit before the timer ends — once submitted, answers <strong>cannot be changed</strong></li>
             </ul>
+            <div class="inst-note" style="border-color: rgba(77,142,255,0.25); background: rgba(77,142,255,0.06); margin-top: 0.8rem; line-height: 1.6;">
+              ⚠️ <strong>Attempt Limit &amp; Validity Policy:</strong> You can only attempt a test series once, so please prepare with a fully focused mindset before starting. Each test series is available for free for a validity of 24 hours, after which the test series will change. For updates on older test series, please stay tuned to our WhatsApp Community and Instagram.
+            </div>
           </div>
 
           <!-- Final note -->
@@ -1008,8 +1011,8 @@
     // Check with Google Sheets first (online source of truth)
     try {
       const cbName = 'ftxchk_' + Date.now();
-      const result = await new Promise((res, rej) => {
-        const t = setTimeout(() => { cleanup(); res(null); }, 8000);
+      let result = await new Promise((res, rej) => {
+        const t = setTimeout(() => { cleanup(); res(null); }, 6000);
         window[cbName] = (d) => { cleanup(); res(d); };
         function cleanup() { clearTimeout(t); delete window[cbName]; const el=document.getElementById('_chkjsonp'); if(el) el.remove(); }
         const s = document.createElement('script');
@@ -1024,6 +1027,25 @@
         s.onerror = () => { cleanup(); res(null); };
         document.head.appendChild(s);
       });
+
+      if (!result) {
+        // Fallback: try plain fetch
+        try {
+          const url = APPS_SCRIPT_URL + '?action=checkAttempt' +
+                      '&email=' + encodeURIComponent(userEmail) +
+                      '&candidateEmail=' + encodeURIComponent(userEmail) +
+                      '&emailAddress=' + encodeURIComponent(userEmail) +
+                      '&seriesId=' + encodeURIComponent(seriesId) +
+                      '&series=' + encodeURIComponent(seriesId);
+          const res = await fetch(url, { redirect: 'follow' });
+          const txt = await res.text();
+          const clean = txt.trim().replace(/^[a-zA-Z_$][a-zA-Z0-9_$.]*\s*\(/, '').replace(/\)\s*;?\s*$/, '');
+          result = JSON.parse(clean);
+        } catch (fetchErr) {
+          console.error('Fetch checkAttempt fallback also failed:', fetchErr);
+        }
+      }
+
       if (result) {
         if (result.attempted) {
           alreadyDone = true;

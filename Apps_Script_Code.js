@@ -177,10 +177,12 @@ function checkAttempt(e) {
 
   var data = sheet.getDataRange().getValues();
 
-  // Column B = Series ID (index 1), Column D = Email (index 3)
+  var emailCol  = getColumnIndexByName(sheet, 'email', 4);
+  var seriesCol = getColumnIndexByName(sheet, 'series', 2);
+
   for (var i = 1; i < data.length; i++) {
-    var rowSeries = String(data[i][1] || '').trim();
-    var rowEmail  = String(data[i][3] || '').toLowerCase().trim();
+    var rowSeries = String(data[i][seriesCol - 1] || '').trim();
+    var rowEmail  = String(data[i][emailCol - 1] || '').toLowerCase().trim();
     if (rowEmail === email && rowSeries === seriesId) {
       return { attempted: true, series: seriesId };
     }
