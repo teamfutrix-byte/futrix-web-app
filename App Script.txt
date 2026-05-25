@@ -1,3 +1,23 @@
+/**
+ * Futrix Pilot Exam Portal - Google Apps Script Backend
+ * 
+ * ── GOOGLE SHEET COLUMN MAP (First Sheet - Registration / Responses) ──
+ * After adding the new fields to your Google Form, the Google Sheet columns will map as:
+ * - Column A: Timestamp
+ * - Column B: Full Name
+ * - Column C: Email Address  (index 2, verified in code)
+ * - Column D: Phone Number   (index 3, verified in code)
+ * - Column E: Date of Birth  (NEW)
+ * - Column F: City           (NEW)
+ * - Column G: Pin Code       (NEW)
+ * - Column H: Preparation For
+ * - Column I: XP Points      (Dynamically located by column header search)
+ * 
+ * Note: The existing verifyLogin and checkRegistration checks use indexes 2 (Email)
+ * and 3 (Phone), which remain unchanged as the new fields are appended *after* the phone number.
+ * The XP points column is found dynamically, meaning no Apps Script logic shifts are required.
+ */
+
 function doGet(e) {
   var callback = e.parameter.callback || '';
   var action   = e.parameter.action   || '';

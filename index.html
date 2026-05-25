@@ -1317,6 +1317,30 @@
                 <div class="field-error">Please enter a valid phone number</div>
               </div>
 
+              <!-- Date Of Birth -->
+              <div class="field" id="fieldDOB">
+                <input type="text" id="dob" name="dob" placeholder=" " onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'" />
+                <label for="dob">Date of Birth</label>
+                <div class="field-line"></div>
+                <div class="field-error">Please enter your date of birth</div>
+              </div>
+
+              <!-- City -->
+              <div class="field" id="fieldCity">
+                <input type="text" id="city" name="city" placeholder=" " autocomplete="address-level2" />
+                <label for="city">City</label>
+                <div class="field-line"></div>
+                <div class="field-error">Please enter your city</div>
+              </div>
+
+              <!-- Pin code -->
+              <div class="field" id="fieldPinCode">
+                <input type="text" id="pinCode" name="pinCode" placeholder=" " autocomplete="postal-code" maxlength="6" />
+                <label for="pinCode">Pin code</label>
+                <div class="field-line"></div>
+                <div class="field-error">Please enter a valid 6-digit pin code</div>
+              </div>
+
             </div>
 
             <!-- Preparation For -->
@@ -1440,13 +1464,24 @@
       </div>
     </div>
     <footer>
-      <div>Join our WhatsApp Community to get <strong>+100 XP</strong> points instantly!</div>
-      <a href="https://chat.whatsapp.com/EuQwlgresyD4fYxrxXJAjc" target="_blank">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.517 2.266 2.27 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.625 1.45 5.426-.003 9.885-4.464 9.888-9.89.002-2.628-1.02-5.1-2.871-6.955C16.386 1.904 13.9 1.9 12.01 1.9c-5.433 0-9.892 4.457-9.896 9.886-.002 1.765.467 3.491 1.357 5.025l-.989 3.607 3.693-.968z" />
-        </svg>
-        Join WhatsApp Community
-      </a>
+      <div>Join our WhatsApp Community to get <strong>+100 XP</strong> points instantly and get daily updates!</div>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 1.5rem; flex-wrap: wrap;">
+        <a href="https://chat.whatsapp.com/EuQwlgresyD4fYxrxXJAjc" target="_blank">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.517 2.266 2.27 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.625 1.45 5.426-.003 9.885-4.464 9.888-9.89.002-2.628-1.02-5.1-2.871-6.955C16.386 1.904 13.9 1.9 12.01 1.9c-5.433 0-9.892 4.457-9.896 9.886-.002 1.765.467 3.491 1.357 5.025l-.989 3.607 3.693-.968z" />
+          </svg>
+          Join WhatsApp Community
+        </a>
+        <span style="color: var(--text-muted); opacity: 0.4;">|</span>
+        <a href="https://www.instagram.com/futrix_official/" target="_blank" style="color: var(--accent);" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--accent)'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.2rem;">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+          </svg>
+          Follow on Instagram
+        </a>
+      </div>
     </footer>
   </main>
 
@@ -1462,6 +1497,9 @@
           - Full Name        (Short answer)
           - Email Address    (Short answer)
           - Phone Number     (Short answer)
+          - Date of Birth    (Short answer / Date)
+          - City             (Short answer)
+          - Pin Code         (Short answer)
           - Preparation For  (Multiple choice: UPSC, SSC, NEET, JEE, Banking, Other)
        2. Open the form, right-click on each field and
           inspect to find the entry IDs (entry.XXXXXXXXX)
@@ -1476,6 +1514,9 @@
       fullName: 'entry.532084623',
       email: 'entry.83129113',
       phone: 'entry.1959093475',
+      dob: 'entry.XXXXXX',       // USER: Replace with your Google Form entry ID for Date of Birth
+      city: 'entry.YYYYYY',      // USER: Replace with your Google Form entry ID for City
+      pinCode: 'entry.ZZZZZZ',   // USER: Replace with your Google Form entry ID for Pin Code
       preparation: 'entry.1154882550',
       preparationOther: 'entry.1154882550.other_option_response',
     };
@@ -1552,9 +1593,18 @@
       const nameField = document.getElementById('fieldName');
       const emailField = document.getElementById('fieldEmail');
       const phoneField = document.getElementById('fieldPhone');
+      const dobField = document.getElementById('fieldDOB');
+      const cityField = document.getElementById('fieldCity');
+      const pinCodeField = document.getElementById('fieldPinCode');
+
+      const dobVal = document.getElementById('dob').value;
+      const cityVal = document.getElementById('city').value;
+      const pinCodeVal = document.getElementById('pinCode').value;
 
       // Reset
-      [nameField, emailField, phoneField].forEach(f => f.classList.remove('error'));
+      [nameField, emailField, phoneField, dobField, cityField, pinCodeField].forEach(f => {
+        if (f) f.classList.remove('error');
+      });
 
       if (!name.trim() || name.trim().length < 2) {
         nameField.classList.add('error'); valid = false;
@@ -1564,6 +1614,15 @@
       }
       if (!phone.trim() || !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(phone.trim())) {
         phoneField.classList.add('error'); valid = false;
+      }
+      if (!dobVal.trim()) {
+        dobField.classList.add('error'); valid = false;
+      }
+      if (!cityVal.trim() || cityVal.trim().length < 2) {
+        cityField.classList.add('error'); valid = false;
+      }
+      if (!pinCodeVal.trim() || !/^\d{6}$/.test(pinCodeVal.trim())) {
+        pinCodeField.classList.add('error'); valid = false;
       }
       if (!selectedExam) {
         showToast('Please select your exam preparation category.', 'error');
@@ -1662,6 +1721,21 @@
         params.append(ENTRY.email, email.trim());
         params.append(ENTRY.phone, phone.trim());
 
+        // Append new fields if their entry ID is set
+        const dobVal = document.getElementById('dob').value.trim();
+        const cityVal = document.getElementById('city').value.trim();
+        const pinCodeVal = document.getElementById('pinCode').value.trim();
+
+        if (ENTRY.dob && !ENTRY.dob.includes('XXXXXX')) {
+          params.append(ENTRY.dob, dobVal);
+        }
+        if (ENTRY.city && !ENTRY.city.includes('YYYYYY')) {
+          params.append(ENTRY.city, cityVal);
+        }
+        if (ENTRY.pinCode && !ENTRY.pinCode.includes('ZZZZZZ')) {
+          params.append(ENTRY.pinCode, pinCodeVal);
+        }
+
         if (isOther && customExam) {
           // Google Forms "Other" needs: main field = __other_option__, plus the custom text field
           params.append(ENTRY.preparation, '__other_option__');
@@ -1729,11 +1803,25 @@
       this.value = this.value.replace(/[^0-9+\-\s()]/g, '');
     });
 
+    // ── Pin code formatting
+    document.getElementById('pinCode').addEventListener('input', function () {
+      this.value = this.value.replace(/[^0-9]/g, '');
+    });
+
     // ── Clear error on input
-    ['fullName', 'emailAddress', 'phoneNumber'].forEach(id => {
+    ['fullName', 'emailAddress', 'phoneNumber', 'dob', 'city', 'pinCode'].forEach(id => {
       const input = document.getElementById(id);
-      const field = input.closest('.field');
-      input.addEventListener('input', () => field.classList.remove('error'));
+      if (input) {
+        const field = input.closest('.field');
+        input.addEventListener('input', () => {
+          if (field) field.classList.remove('error');
+        });
+        if (id === 'dob') {
+          input.addEventListener('change', () => {
+            if (field) field.classList.remove('error');
+          });
+        }
+      }
     });
   </script>
 </body>
