@@ -379,8 +379,9 @@ const ExamScreen = ({ user, onNavigate, onShowToast, onUpdateXP }) => {
           <p className="result-sub">Your responses have been saved successfully.</p>
           
           <div className="result-score-ring">
-            <div className="result-score-val" id="res-score">{results.score.toFixed(2)}</div>
-            <div className="result-score-lbl">Score</div>
+            <div className="result-score-lbl" style={{ marginBottom: '0.15rem' }}>Score</div>
+            <div className="result-score-val" id="res-score" style={{ lineHeight: 1.1 }}>{results.score.toFixed(2)}</div>
+            <div className="result-score-lbl" id="res-score-lbl" style={{ marginTop: '0.15rem' }}>Out of {questions.length}</div>
           </div>
           
           <div style={{

@@ -612,8 +612,9 @@
     <div class="result-title">Exam Submitted! 🎉</div>
     <p class="result-sub">Your responses have been saved successfully.</p>
     <div class="result-score-ring">
-      <div class="result-score-val" id="res-score">0</div>
-      <div class="result-score-lbl">Score</div>
+      <div class="result-score-lbl" style="margin-bottom: 0.15rem;">Score</div>
+      <div class="result-score-val" id="res-score" style="line-height: 1.1;">0</div>
+      <div class="result-score-lbl" id="res-score-lbl" style="margin-top: 0.15rem;">Out of 0</div>
     </div>
     <!-- XP earned badge -->
     <div style="text-align:center;margin:-0.5rem 0 1rem;font-family:'Sora',sans-serif;font-size:0.95rem;font-weight:700" id="res-xp">+0 XP</div>
@@ -1283,7 +1284,11 @@ function showResult(correct, wrong, skipped, score) {
   const xpEarned    = score;
   const displayScore = score.toFixed(2);                   // e.g. 0.75
 
-  document.getElementById('res-score').textContent   = displayScore + ' / ' + total;
+  document.getElementById('res-score').textContent   = displayScore;
+  const resScoreLbl = document.getElementById('res-score-lbl');
+  if (resScoreLbl) {
+    resScoreLbl.textContent = 'Out of ' + total;
+  }
   document.getElementById('res-correct').textContent = correct;
   document.getElementById('res-wrong').textContent   = wrong;
   document.getElementById('res-skipped').textContent = skipped;
