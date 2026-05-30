@@ -9,11 +9,24 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [dob, setDob] = useState('');
+  const [city, setCity] = useState('');
+  const [instituteName, setInstituteName] = useState('');
+  const [pinCode, setPinCode] = useState('');
   const [selectedExam, setSelectedExam] = useState('');
   const [otherExam, setOtherExam] = useState('');
+  const [referral, setReferral] = useState('');
 
   // Field validation errors
-  const [errors, setErrors] = useState({ name: false, email: false, phone: false });
+  const [errors, setErrors] = useState({
+    name: false,
+    email: false,
+    phone: false,
+    dob: false,
+    city: false,
+    institute: false,
+    pinCode: false
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -52,7 +65,15 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
 
   const validate = () => {
     let valid = true;
-    const newErrors = { name: false, email: false, phone: false };
+    const newErrors = {
+      name: false,
+      email: false,
+      phone: false,
+      dob: false,
+      city: false,
+      institute: false,
+      pinCode: false
+    };
 
     if (!fullName.trim() || fullName.trim().length < 2) {
       newErrors.name = true;
@@ -64,6 +85,19 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
     }
     if (!phone.trim() || !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(phone.trim())) {
       newErrors.phone = true;
+      valid = false;
+    }
+    if (!dob.trim()) {
+      newErrors.dob = true;
+      valid = false;
+    }
+    if (!city.trim() || city.trim().length < 2) {
+      newErrors.city = true;
+      valid = false;
+    }
+
+    if (!pinCode.trim() || !/^\d{6}$/.test(pinCode.trim())) {
+      newErrors.pinCode = true;
       valid = false;
     }
     if (!selectedExam) {
@@ -82,58 +116,46 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
     setIsLoading(true);
 
     try {
-      // Pre-registration check: Call Apps Script to verify email/phone uniqueness
-      let checkRes = null;
+      const isOther = selectedExam === 'Other';
+      const customExamValue = otherExam.trim();
+      const prepValue = isOther && customExamValue ? customExamValue : selectedExam;
+
+      // Submit registration details directly to Apps Script
+      const regParams = {
+        action: 'register',
+        fullName: fullName.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        dob: dob.trim(),
+        city: city.trim(),
+        instituteName: instituteName.trim(),
+        pinCode: pinCode.trim(),
+        preparation: prepValue,
+        referral: referral.trim()
+      };
+
+      let regRes = null;
       try {
-        checkRes = await jsonpRequest(APPS_SCRIPT_URL, {
-          action: 'checkRegistration',
-          email: email.trim(),
-          phone: phone.trim()
-        });
+        regRes = await jsonpRequest(APPS_SCRIPT_URL, regParams);
       } catch (err) {
-        console.warn('JSONP registration check failed, trying fetch fallback...', err);
+        console.warn('JSONP registration failed, trying fetch fallback...', err);
         try {
-          const url = `${APPS_SCRIPT_URL}?action=checkRegistration&email=${encodeURIComponent(email.trim())}&phone=${encodeURIComponent(phone.trim())}`;
+          const url = `${APPS_SCRIPT_URL}?${new URLSearchParams(regParams).toString()}`;
           const res = await fetch(url, { redirect: 'follow' });
           const txt = await res.text();
           const cleaned = txt.trim().replace(/^[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/, '').replace(/\)\s*;?\s*$/, '');
-          checkRes = JSON.parse(cleaned);
+          regRes = JSON.parse(cleaned);
         } catch (fetchErr) {
-          console.error('Fetch registration check also failed:', fetchErr);
+          console.error('Fetch registration fallback also failed:', fetchErr);
         }
       }
 
-      if (checkRes && checkRes.success === false) {
-        onShowToast(checkRes.message, 'error');
-        setIsLoading(false);
-        return;
-      }
-
-      // Submit to Google Forms
-      const isOther = selectedExam === 'Other';
-      const customExamValue = otherExam.trim();
-
-      const params = new URLSearchParams();
-      params.append(ENTRY.fullName, fullName.trim());
-      params.append(ENTRY.email, email.trim());
-      params.append(ENTRY.phone, phone.trim());
-
-      if (isOther && customExamValue) {
-        params.append(ENTRY.preparation, '__other_option__');
-        params.append(ENTRY.preparationOther, customExamValue);
+      if (regRes && regRes.success) {
+        setIsSuccess(true);
+        onShowToast(`Welcome aboard, ${fullName.split(' ')[0]}! 🚀`, 'success');
       } else {
-        params.append(ENTRY.preparation, selectedExam);
+        onShowToast(regRes ? regRes.message : 'Registration failed. Please try again.', 'error');
       }
-
-      await fetch(FORM_ACTION, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params.toString()
-      });
-
-      setIsSuccess(true);
-      onShowToast(`Welcome aboard, ${fullName.split(' ')[0]}! 🚀`, 'success');
 
     } catch (err) {
       console.error('Submission error:', err);
@@ -170,7 +192,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
                         id="fullName" 
                         value={fullName}
                         onChange={(e) => { setFullName(e.target.value); setErrors(prev => ({ ...prev, name: false })); }}
-                        placeholder=" " 
+                        placeholder="e.g. Rajesh Kumar" 
                         autoComplete="name" 
                       />
                       <label htmlFor="fullName">Full Name</label>
@@ -185,7 +207,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
                         id="emailAddress" 
                         value={email}
                         onChange={(e) => { setEmail(e.target.value); setErrors(prev => ({ ...prev, email: false })); }}
-                        placeholder=" " 
+                        placeholder="e.g. rajesh@gmail.com" 
                         autoComplete="email" 
                       />
                       <label htmlFor="emailAddress">Email Address</label>
@@ -200,13 +222,77 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
                         id="phoneNumber" 
                         value={phone}
                         onChange={(e) => handlePhoneChange(e.target.value)}
-                        placeholder=" " 
+                        placeholder="e.g. 9876543210" 
                         autoComplete="tel"
                         maxLength="15" 
                       />
                       <label htmlFor="phoneNumber">Phone Number</label>
                       <div className="field-line"></div>
                       <div className="field-error">Please enter a valid phone number</div>
+                    </div>
+
+                    {/* Date Of Birth */}
+                    <div className={`field ${errors.dob ? 'error' : ''}`}>
+                      <input 
+                        type="text" 
+                        id="dob" 
+                        value={dob}
+                        onChange={(e) => { setDob(e.target.value); setErrors(prev => ({ ...prev, dob: false })); }}
+                        placeholder="e.g. 1998-05-15"
+                        onFocus={(e) => (e.target.type = 'date')}
+                        onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
+                      />
+                      <label htmlFor="dob">Date of Birth</label>
+                      <div className="field-line"></div>
+                      <div className="field-error">Please enter your date of birth</div>
+                    </div>
+
+                    {/* City */}
+                    <div className={`field ${errors.city ? 'error' : ''}`}>
+                      <input 
+                        type="text" 
+                        id="city" 
+                        value={city}
+                        onChange={(e) => { setCity(e.target.value); setErrors(prev => ({ ...prev, city: false })); }}
+                        placeholder="e.g. New Delhi" 
+                        autoComplete="address-level2" 
+                      />
+                      <label htmlFor="city">City</label>
+                      <div className="field-line"></div>
+                      <div className="field-error">Please enter your city</div>
+                    </div>
+
+                    {/* Institute Name */}
+                    <div className="field">
+                      <input 
+                        type="text" 
+                        id="instituteName" 
+                        value={instituteName}
+                        onChange={(e) => { setInstituteName(e.target.value); setErrors(prev => ({ ...prev, institute: false })); }}
+                        placeholder="e.g. Coaching Name,Teacher Name,College Name or Institute Name" 
+                      />
+                      <label htmlFor="instituteName">Institute Name (Optional)</label>
+                      <div className="field-line"></div>
+                    </div>
+
+                    {/* Pin code */}
+                    <div className={`field ${errors.pinCode ? 'error' : ''}`}>
+                      <input 
+                        type="text" 
+                        id="pinCode" 
+                        value={pinCode}
+                        onChange={(e) => { 
+                          const val = e.target.value.replace(/[^0-9]/g, '');
+                          setPinCode(val); 
+                          setErrors(prev => ({ ...prev, pinCode: false })); 
+                        }}
+                        placeholder="e.g. 110001" 
+                        autoComplete="postal-code"
+                        maxLength="6" 
+                      />
+                      <label htmlFor="pinCode">Pin code</label>
+                      <div className="field-line"></div>
+                      <div className="field-error">Please enter a valid 6-digit pin code</div>
                     </div>
                   </div>
 
@@ -235,6 +321,34 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
                         maxLength="60" 
                         autoComplete="off" 
                       />
+                    </div>
+                  </div>
+
+                  <div className="field-group" style={{ marginTop: '1.5rem' }}>
+                    {/* Referral */}
+                    <div className="field">
+                      <input 
+                        type="text" 
+                        id="referral" 
+                        value={referral}
+                        onChange={(e) => setReferral(e.target.value.replace(/[^0-9]/g, ''))}
+                        placeholder="e.g. Enter the registered mobile number of the person who Reffered you to FUTRIX." 
+                      />
+                      <label htmlFor="referral">If Any Refferal</label>
+                      <div className="field-line"></div>
+                    </div>
+
+                    {/* XP Point */}
+                    <div className="field">
+                      <input 
+                        type="text" 
+                        id="xpPointDisplay" 
+                        value="100 XP" 
+                        readOnly 
+                        style={{ color: 'var(--success)', fontWeight: '600' }} 
+                      />
+                      <label htmlFor="xpPointDisplay">XP Point (Earned on Registration)</label>
+                      <div className="field-line" style={{ background: 'var(--success)', width: '100%' }}></div>
                     </div>
                   </div>
 

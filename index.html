@@ -340,6 +340,11 @@
 
     .field input::placeholder {
       opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .field input:focus::placeholder {
+      opacity: 0.4;
     }
 
     .field label {
@@ -1294,7 +1299,7 @@
 
               <!-- Full Name -->
               <div class="field" id="fieldName">
-                <input type="text" id="fullName" name="fullName" placeholder=" " autocomplete="name" />
+                <input type="text" id="fullName" name="fullName" placeholder="e.g. Rajesh Kumar" autocomplete="name" />
                 <label for="fullName">Full Name</label>
                 <div class="field-line"></div>
                 <div class="field-error">Please enter your full name</div>
@@ -1302,7 +1307,7 @@
 
               <!-- Email -->
               <div class="field" id="fieldEmail">
-                <input type="email" id="emailAddress" name="emailAddress" placeholder=" " autocomplete="email" />
+                <input type="email" id="emailAddress" name="emailAddress" placeholder="e.g. rajesh@gmail.com" autocomplete="email" />
                 <label for="emailAddress">Email Address</label>
                 <div class="field-line"></div>
                 <div class="field-error">Please enter a valid email address</div>
@@ -1310,7 +1315,7 @@
 
               <!-- Phone -->
               <div class="field" id="fieldPhone">
-                <input type="tel" id="phoneNumber" name="phoneNumber" placeholder=" " autocomplete="tel"
+                <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="e.g. 9876543210" autocomplete="tel"
                   maxlength="15" />
                 <label for="phoneNumber">Phone Number</label>
                 <div class="field-line"></div>
@@ -1319,7 +1324,7 @@
 
               <!-- Date Of Birth -->
               <div class="field" id="fieldDOB">
-                <input type="text" id="dob" name="dob" placeholder=" " onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'" />
+                <input type="text" id="dob" name="dob" placeholder="e.g. 1998-05-15" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'" />
                 <label for="dob">Date of Birth</label>
                 <div class="field-line"></div>
                 <div class="field-error">Please enter your date of birth</div>
@@ -1327,15 +1332,22 @@
 
               <!-- City -->
               <div class="field" id="fieldCity">
-                <input type="text" id="city" name="city" placeholder=" " autocomplete="address-level2" />
+                <input type="text" id="city" name="city" placeholder="e.g. New Delhi" autocomplete="address-level2" />
                 <label for="city">City</label>
                 <div class="field-line"></div>
                 <div class="field-error">Please enter your city</div>
               </div>
 
+              <!-- Institute Name -->
+              <div class="field" id="fieldInstitute">
+                <input type="text" id="instituteName" name="instituteName" placeholder="e.g. Coaching Name,Teacher Name,College Name or Institute Name" />
+                <label for="instituteName">Institute Name (Optional)</label>
+                <div class="field-line"></div>
+              </div>
+
               <!-- Pin code -->
               <div class="field" id="fieldPinCode">
-                <input type="text" id="pinCode" name="pinCode" placeholder=" " autocomplete="postal-code" maxlength="6" />
+                <input type="text" id="pinCode" name="pinCode" placeholder="e.g. 110001" autocomplete="postal-code" maxlength="6" />
                 <label for="pinCode">Pin code</label>
                 <div class="field-line"></div>
                 <div class="field-error">Please enter a valid 6-digit pin code</div>
@@ -1359,6 +1371,22 @@
               <div class="other-exam-field">
                 <input type="text" id="otherExamInput" placeholder="✏️ Type your exam name (e.g. GATE, CA, CDS...)"
                   maxlength="60" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="field-group" style="margin-top: 1.5rem;">
+              <!-- Referral -->
+              <div class="field" id="fieldReferral">
+                <input type="text" id="referral" name="referral" placeholder="e.g. Enter the registered mobile number of the person who Reffered you to FUTRIX." />
+                <label for="referral">If Any Refferal</label>
+                <div class="field-line"></div>
+              </div>
+
+              <!-- XP Point -->
+              <div class="field" id="fieldXP">
+                <input type="text" id="xpPointDisplay" value="100 XP" readonly style="color: var(--success); font-weight: 600;" />
+                <label for="xpPointDisplay">XP Point (Earned on Registration)</label>
+                <div class="field-line" style="background: var(--success); width: 100%;"></div>
               </div>
             </div>
 
@@ -1595,14 +1623,16 @@
       const phoneField = document.getElementById('fieldPhone');
       const dobField = document.getElementById('fieldDOB');
       const cityField = document.getElementById('fieldCity');
+      const instituteField = document.getElementById('fieldInstitute');
       const pinCodeField = document.getElementById('fieldPinCode');
 
       const dobVal = document.getElementById('dob').value;
       const cityVal = document.getElementById('city').value;
+      const instituteVal = document.getElementById('instituteName').value;
       const pinCodeVal = document.getElementById('pinCode').value;
 
       // Reset
-      [nameField, emailField, phoneField, dobField, cityField, pinCodeField].forEach(f => {
+      [nameField, emailField, phoneField, dobField, cityField, instituteField, pinCodeField].forEach(f => {
         if (f) f.classList.remove('error');
       });
 
@@ -1663,7 +1693,7 @@
       });
     }
 
-    // ── Form Submit → Google Forms
+    // ── Form Submit → Apps Script
     document.getElementById('registrationForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -1682,78 +1712,54 @@
       spinner.style.display = 'block';
 
       try {
-        // Pre-registration check: Call Apps Script to verify email/phone uniqueness
-        let checkRes = null;
+        const isOther = document.querySelector('.prep-btn[data-exam="Other"]')?.classList.contains('selected');
+        const customExam = document.getElementById('otherExamInput').value.trim();
+        const prepValue = isOther && customExam ? customExam : selectedExam;
+
+        const dobVal = document.getElementById('dob').value.trim();
+        const cityVal = document.getElementById('city').value.trim();
+        const instituteNameVal = document.getElementById('instituteName').value.trim();
+        const pinCodeVal = document.getElementById('pinCode').value.trim();
+        const referralVal = document.getElementById('referral').value.trim();
+
+        // Submit registration details directly to Apps Script
+        const regParams = {
+          action: 'register',
+          fullName: name.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          dob: dobVal,
+          city: cityVal,
+          instituteName: instituteNameVal,
+          pinCode: pinCodeVal,
+          preparation: prepValue,
+          referral: referralVal
+        };
+
+        let regRes = null;
         try {
-          checkRes = await jsonpRequest(APPS_SCRIPT_URL, {
-            action: 'checkRegistration',
-            email: email.trim(),
-            phone: phone.trim()
-          });
+          regRes = await jsonpRequest(APPS_SCRIPT_URL, regParams);
         } catch (err) {
-          console.warn('JSONP registration check failed, trying fetch fallback...', err);
-          // Fallback: try plain fetch
+          console.warn('JSONP registration failed, trying fetch fallback...', err);
           try {
-            const url = APPS_SCRIPT_URL + '?action=checkRegistration&email=' + encodeURIComponent(email.trim()) + '&phone=' + encodeURIComponent(phone.trim());
+            const url = APPS_SCRIPT_URL + '?' + new URLSearchParams(regParams).toString();
             const res = await fetch(url, { redirect: 'follow' });
             const txt = await res.text();
             const cleaned = txt.trim().replace(/^[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/, '').replace(/\)\s*;?\s*$/, '');
-            checkRes = JSON.parse(cleaned);
+            regRes = JSON.parse(cleaned);
           } catch (fetchErr) {
-            console.error('Fetch registration check also failed:', fetchErr);
+            console.error('Fetch registration fallback also failed:', fetchErr);
           }
         }
 
-        if (checkRes && checkRes.success === false) {
-          showToast(checkRes.message, 'error');
-          // Re-enable button
+        if (regRes && regRes.success) {
+          showSuccess(name);
+        } else {
+          showToast(regRes ? regRes.message : 'Registration failed. Please try again.', 'error');
           btn.disabled = false;
           btnText.style.display = 'inline';
           spinner.style.display = 'none';
-          return;
         }
-        // Google Forms requires application/x-www-form-urlencoded (NOT multipart/FormData)
-        const isOther = document.querySelector('.prep-btn[data-exam="Other"]')?.classList.contains('selected');
-        const customExam = document.getElementById('otherExamInput').value.trim();
-
-        const params = new URLSearchParams();
-        params.append(ENTRY.fullName, name.trim());
-        params.append(ENTRY.email, email.trim());
-        params.append(ENTRY.phone, phone.trim());
-
-        // Append new fields if their entry ID is set
-        const dobVal = document.getElementById('dob').value.trim();
-        const cityVal = document.getElementById('city').value.trim();
-        const pinCodeVal = document.getElementById('pinCode').value.trim();
-
-        if (ENTRY.dob && !ENTRY.dob.includes('XXXXXX')) {
-          params.append(ENTRY.dob, dobVal);
-        }
-        if (ENTRY.city && !ENTRY.city.includes('YYYYYY')) {
-          params.append(ENTRY.city, cityVal);
-        }
-        if (ENTRY.pinCode && !ENTRY.pinCode.includes('ZZZZZZ')) {
-          params.append(ENTRY.pinCode, pinCodeVal);
-        }
-
-        if (isOther && customExam) {
-          // Google Forms "Other" needs: main field = __other_option__, plus the custom text field
-          params.append(ENTRY.preparation, '__other_option__');
-          params.append(ENTRY.preparationOther, customExam);
-        } else {
-          params.append(ENTRY.preparation, selectedExam);
-        }
-
-        // Submit — no-cors is required; browser won't get a response but data IS saved
-        await fetch(FORM_ACTION, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: params.toString()
-        });
-
-        // no-cors means we can't read the response, but the submission goes through
-        showSuccess(name);
 
       } catch (err) {
         console.error('Submission error:', err);
@@ -1808,8 +1814,13 @@
       this.value = this.value.replace(/[^0-9]/g, '');
     });
 
+    // ── Referral formatting
+    document.getElementById('referral').addEventListener('input', function () {
+      this.value = this.value.replace(/[^0-9]/g, '');
+    });
+
     // ── Clear error on input
-    ['fullName', 'emailAddress', 'phoneNumber', 'dob', 'city', 'pinCode'].forEach(id => {
+    ['fullName', 'emailAddress', 'phoneNumber', 'dob', 'city', 'instituteName', 'pinCode'].forEach(id => {
       const input = document.getElementById(id);
       if (input) {
         const field = input.closest('.field');

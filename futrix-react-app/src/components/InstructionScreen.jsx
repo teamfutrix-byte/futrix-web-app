@@ -6,6 +6,7 @@ const InstructionScreen = ({ user, onNavigate, onShowToast, onLogout }) => {
   const [isChecked, setIsChecked] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [alreadyAttempted, setAlreadyAttempted] = useState(false);
+  const [showMoreInstructions, setShowMoreInstructions] = useState(false);
 
   // Sidebar toggle state (mobile)
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -293,6 +294,16 @@ const InstructionScreen = ({ user, onNavigate, onShowToast, onLogout }) => {
                       </div>
                     </div>
                   </div>
+                  {/* Referral XP Row */}
+                  <div className="reward-row" style={{ marginTop: '0.8rem', borderTop: '1px dashed rgba(255,255,255,0.08)', paddingTop: '0.8rem' }}>
+                    <div className="reward-block">
+                      <span className="reward-label">Referral XP</span>
+                      <div className="reward-value" style={{ color: 'var(--teal)' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ marginRight: '0.2rem', color: 'var(--teal)' }}><circle cx="12" cy="12" r="10" /></svg>
+                        <span>{(user.referralXp || 0).toFixed(2)}</span> <span className="reward-unit" style={{ color: 'var(--teal)' }}>XP</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Exam Configuration details card */}
@@ -342,59 +353,119 @@ const InstructionScreen = ({ user, onNavigate, onShowToast, onLogout }) => {
                     </ul>
                   </div>
 
-                  <div className="inst-section">
-                    <div className="inst-section-title">💎 Future XP Benefits</div>
-                    <ul>
-                      <li>Cash reward conversions</li>
-                      <li>Discount coupons &amp; Exclusive offers</li>
-                      <li>Premium feature unlocks</li>
-                      <li>Scholarship opportunities &amp; Sponsored learning programs</li>
-                      <li>Community leaderboard rewards</li>
-                    </ul>
-                    <div className="inst-note">The more <strong>consistently you perform</strong>, the greater your future benefits.</div>
-                  </div>
-
-                  <div className="inst-section">
-                    <div className="inst-section-title">🏆 Sponsorship &amp; Rank Opportunities</div>
-                    <ul>
-                      <li>Sponsorship opportunities &amp; Premium mentorship access</li>
-                      <li>Featured leaderboard positions</li>
-                      <li>Early access to Futrix programs</li>
-                      <li>Community recognition badges</li>
-                    </ul>
-                  </div>
-
-                  <div className="inst-section">
-                    <div className="inst-section-title">🔥 Daily XP Opportunities</div>
-                    <ul>
-                      <li>Daily mock tests &amp; Quiz battles</li>
-                      <li>Streak rewards &amp; Special challenges</li>
-                      <li>Referral missions &amp; Leaderboard events</li>
-                    </ul>
-                    <div className="inst-note"><strong>Consistency</strong> matters more than one-time performance.</div>
-                  </div>
-
-                  <div className="inst-section">
-                    <div className="inst-section-title">👥 Referral Reward Program</div>
-                    <ul>
-                      <li className="success">Every successful referral gives <strong>+150 XP Points</strong></li>
-                      <li>Referral bonuses may increase during special campaigns</li>
-                      <li className="danger">Abuse or fake referrals will result in <strong>XP removal</strong></li>
-                    </ul>
-                  </div>
-
-                  <div className="inst-section">
-                    <div className="inst-section-title">⚠️ Anti-Cheating &amp; Fair Play Policy</div>
-                    <ul>
-                      <li className="danger">Tab switching repeatedly</li>
-                      <li className="danger">Using external help / tools</li>
-                      <li className="danger">Multiple device access</li>
-                      <li className="danger">Copy-pasting answers or suspicious behavior</li>
-                    </ul>
-                    <div className="inst-note" style={{ borderColor: 'rgba(255,154,60,0.3)', background: 'rgba(255,154,60,0.06)' }}>
-                      If detected: XP → 0 · Result invalidated · Account warning · Possible suspension
+                  {/* Toggle Read More Button (shown only when collapsed) */}
+                  {!showMoreInstructions && (
+                    <div style={{ textAlign: 'center', margin: '0.5rem 0 1.2rem' }}>
+                      <button 
+                        type="button" 
+                        onClick={() => setShowMoreInstructions(true)}
+                        style={{
+                          background: 'rgba(77, 142, 255, 0.08)',
+                          border: '1px dashed var(--primary-btn)',
+                          color: 'var(--primary)',
+                          padding: '0.5rem 1.1rem',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontFamily: "'Sora', sans-serif",
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          transition: 'all 0.2s ease',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem'
+                        }}
+                        onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(77, 142, 255, 0.15)'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(77, 142, 255, 0.08)'; }}
+                      >
+                        <span>📖</span> Read More Instructions
+                      </button>
                     </div>
-                  </div>
+                  )}
+
+                  {showMoreInstructions && (
+                    <>
+                      <div className="inst-section">
+                        <div className="inst-section-title">💎 Future XP Benefits</div>
+                        <ul>
+                          <li>Cash reward conversions</li>
+                          <li>Discount coupons &amp; Exclusive offers</li>
+                          <li>Premium feature unlocks</li>
+                          <li>Scholarship opportunities &amp; Sponsored learning programs</li>
+                          <li>Community leaderboard rewards</li>
+                        </ul>
+                        <div className="inst-note">The more <strong>consistently you perform</strong>, the greater your future benefits.</div>
+                      </div>
+
+                      <div className="inst-section">
+                        <div className="inst-section-title">🏆 Sponsorship &amp; Rank Opportunities</div>
+                        <ul>
+                          <li>Sponsorship opportunities &amp; Premium mentorship access</li>
+                          <li>Featured leaderboard positions</li>
+                          <li>Early access to Futrix programs</li>
+                          <li>Community recognition badges</li>
+                        </ul>
+                      </div>
+
+                      <div className="inst-section">
+                        <div className="inst-section-title">🔥 Daily XP Opportunities</div>
+                        <ul>
+                          <li>Daily mock tests &amp; Quiz battles</li>
+                          <li>Streak rewards &amp; Special challenges</li>
+                          <li>Referral missions &amp; Leaderboard events</li>
+                        </ul>
+                        <div className="inst-note"><strong>Consistency</strong> matters more than one-time performance.</div>
+                      </div>
+
+                      <div className="inst-section">
+                        <div className="inst-section-title">👥 Referral Reward Program</div>
+                        <ul>
+                          <li className="success">Every successful referral gives <strong>+100 XP Points</strong></li>
+                          <li>Referral bonuses may increase during special campaigns</li>
+                          <li className="danger">Abuse or fake referrals will result in <strong>XP removal</strong></li>
+                        </ul>
+                      </div>
+
+                      <div className="inst-section">
+                        <div className="inst-section-title">⚠️ Anti-Cheating &amp; Fair Play Policy</div>
+                        <ul>
+                          <li className="danger">Tab switching repeatedly</li>
+                          <li className="danger">Using external help / tools</li>
+                          <li className="danger">Multiple device access</li>
+                          <li className="danger">Copy-pasting answers or suspicious behavior</li>
+                        </ul>
+                        <div className="inst-note" style={{ borderColor: 'rgba(255,154,60,0.3)', background: 'rgba(255,154,60,0.06)' }}>
+                          If detected: XP → 0 · Result invalidated · Account warning · Possible suspension
+                        </div>
+                      </div>
+
+                      {/* Toggle Hide Button (shown only when expanded at the bottom) */}
+                      <div style={{ textAlign: 'center', margin: '0.5rem 0 1.2rem' }}>
+                        <button 
+                          type="button" 
+                          onClick={() => setShowMoreInstructions(false)}
+                          style={{
+                            background: 'rgba(77, 142, 255, 0.08)',
+                            border: '1px dashed var(--primary-btn)',
+                            color: 'var(--primary)',
+                            padding: '0.5rem 1.1rem',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontFamily: "'Sora', sans-serif",
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            transition: 'all 0.2s ease',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.4rem'
+                          }}
+                          onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(77, 142, 255, 0.15)'; }}
+                          onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(77, 142, 255, 0.08)'; }}
+                        >
+                          <span>📖</span> Hide Instructions
+                        </button>
+                      </div>
+                    </>
+                  )}
 
                   <div className="inst-section">
                     <div className="inst-section-title">📌 Important Guidelines</div>
@@ -478,7 +549,7 @@ const InstructionScreen = ({ user, onNavigate, onShowToast, onLogout }) => {
                 
                 <div style={{ background: 'rgba(77, 142, 255, 0.06)', border: '1px solid rgba(77, 142, 255, 0.25)', borderRadius: '12px', padding: '0.95rem 1.2rem', fontSize: '0.85rem', color: 'var(--text)', lineHeight: 1.5, display: 'flex', gap: '0.8rem', alignItems: 'flex-start' }}>
                   <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>👥</span>
-                  <div>Refer your friends and earn <strong style={{ color: 'var(--primary)' }}>+150 XP Points</strong> for every successful referral.</div>
+                  <div>Refer your friends and earn <strong style={{ color: 'var(--primary)' }}>+100 XP Points</strong> for every successful referral.</div>
                 </div>
 
                 <div style={{ background: 'rgba(0, 229, 212, 0.06)', border: '1px solid rgba(0, 229, 212, 0.25)', borderRadius: '12px', padding: '0.95rem 1.2rem', fontSize: '0.85rem', color: 'var(--text)', lineHeight: 1.5, display: 'flex', gap: '0.8rem', alignItems: 'flex-start' }}>

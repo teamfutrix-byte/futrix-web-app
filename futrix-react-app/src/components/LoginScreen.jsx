@@ -81,6 +81,7 @@ const LoginScreen = ({ onNavigate, onShowToast, onLoginSuccess }) => {
         email: data.email || trimmedEmail,
         phone: data.phone || trimmedPhone,
         xp: parseFloat(data.xp || 100),
+        referralXp: parseFloat(data.referralXp || 0),
       };
 
       onLoginSuccess(userData);

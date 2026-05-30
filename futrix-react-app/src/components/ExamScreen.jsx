@@ -27,6 +27,7 @@ const ExamScreen = ({ user, onNavigate, onShowToast, onUpdateXP }) => {
   const [errorMsg, setErrorMsg] = useState('');
   const [isExitWarningOpen, setIsExitWarningOpen] = useState(false);
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+  const [showMoreReport, setShowMoreReport] = useState(false);
 
   // Result statistics
   const [results, setResults] = useState({ correct: 0, wrong: 0, skipped: 0, score: 0 });
@@ -372,7 +373,7 @@ const ExamScreen = ({ user, onNavigate, onShowToast, onUpdateXP }) => {
   if (status === 'result') {
     return (
       <div id="resultScreen" className="result-screen show">
-        <div className="result-logo">Fut<span>rix</span></div>
+        <div className="logo" style={{ fontSize: '1.8rem', fontWeight: 800, marginTop: '1rem', marginBottom: '0.5rem', display: 'inline-block' }}>Fut<span>rix</span></div>
         <div className="result-card">
           <div className="result-title">Exam Submitted! 🎉</div>
           <p className="result-sub">Your responses have been saved successfully.</p>
@@ -408,6 +409,109 @@ const ExamScreen = ({ user, onNavigate, onShowToast, onUpdateXP }) => {
               <div className="result-stat-val" id="res-skipped">{results.skipped}</div>
               <div className="result-stat-lbl">Skipped</div>
             </div>
+          </div>
+
+          {/* Premium Report Box */}
+          <div style={{
+            background: 'rgba(77,142,255,0.06)',
+            border: '1px solid rgba(77,142,255,0.2)',
+            borderRadius: '14px',
+            padding: '1.25rem',
+            marginBottom: '1.5rem',
+            textAlign: 'left',
+            fontSize: '0.85rem',
+            lineHeight: '1.6',
+            color: 'var(--text)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.6rem', fontFamily: "'Sora', sans-serif", fontSize: '0.95rem', fontWeight: 700, color: 'var(--primary)' }}>
+              <span>👑</span> Detailed Performance Report
+            </div>
+            
+            <p style={{ marginBottom: '0.8rem', fontWeight: 600 }}>Want your detailed performance report instantly?</p>
+            
+            {/* Read More Button (shown only when collapsed) */}
+            {!showMoreReport && (
+              <div style={{ textAlign: 'center', margin: '0.5rem 0 0.2rem' }}>
+                <button 
+                  type="button" 
+                  onClick={() => setShowMoreReport(true)}
+                  style={{
+                    background: 'rgba(77, 142, 255, 0.08)',
+                    border: '1px dashed var(--primary)',
+                    color: 'var(--primary)',
+                    padding: '0.4rem 1rem',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontFamily: "'Sora', sans-serif",
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    transition: 'all 0.2s ease',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem'
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(77, 142, 255, 0.15)'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(77, 142, 255, 0.08)'; }}
+                >
+                  <span>📖</span> Read More Details
+                </button>
+              </div>
+            )}
+
+            {/* Collapsible Details Panel */}
+            {showMoreReport && (
+              <div style={{ transition: 'all 0.3s ease' }}>
+                <p style={{ margin: '0.8rem 0 0.4rem', color: 'var(--primary)', fontWeight: 600 }}>🚀 Upgrade to the Premium Report Plan and get immediate access to:</p>
+                
+                <ul style={{ listStyle: 'none', paddingLeft: '0.2rem', marginBottom: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  <li>✅ Subject-wise Analysis</li>
+                  <li>✅ Accuracy Report</li>
+                  <li>✅ Performance Insights</li>
+                  <li>✅ Strengths & Weaknesses</li>
+                  <li>✅ Improvement Recommendations</li>
+                </ul>
+                
+                <p style={{ marginBottom: '0.6rem', color: 'var(--text-muted)', fontSize: '0.8rem', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.6rem' }}>
+                  🏫 Students enrolled through a FUTRIX-registered coaching institute do not need to purchase the Premium Report for coaching review.
+                </p>
+                
+                <p style={{ marginBottom: '0.8rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                  Your detailed performance report will be shared with your registered coaching institute free of cost within 7 days.
+                </p>
+                
+                <div style={{ background: 'rgba(255, 169, 77, 0.07)', border: '1px solid rgba(255, 169, 77, 0.2)', borderRadius: '8px', padding: '0.6rem 0.8rem', fontSize: '0.8rem', color: 'var(--text)', marginBottom: '0.8rem' }}>
+                  <strong style={{ color: 'var(--accent)' }}>⚡ Need your report right now?</strong><br />
+                  Upgrade to Premium and unlock instant access.
+                </div>
+
+                {/* Hide Button (shown only when expanded at the bottom of the content) */}
+                <div style={{ textAlign: 'center', margin: '0.5rem 0 0' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowMoreReport(false)}
+                    style={{
+                      background: 'rgba(77, 142, 255, 0.08)',
+                      border: '1px dashed var(--primary)',
+                      color: 'var(--primary)',
+                      padding: '0.4rem 1rem',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontFamily: "'Sora', sans-serif",
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      transition: 'all 0.2s ease',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem'
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(77, 142, 255, 0.15)'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(77, 142, 255, 0.08)'; }}
+                  >
+                    <span>📖</span> Hide Details
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <button className="btn-home" onClick={handleReturnToDashboard}>Back to Dashboard</button>

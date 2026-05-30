@@ -693,6 +693,7 @@
           email: data.email || email,
           phone: data.phone || phone,
           xp: parseFloat(data.xp || 100),   // 100 XP for new, existing XP for returning
+          referralXp: parseFloat(data.referralXp || 0)
         }));
         window.location.href = 'instruction.html';
       } else {

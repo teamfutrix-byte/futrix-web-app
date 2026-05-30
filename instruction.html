@@ -705,6 +705,16 @@
               </div>
             </div>
           </div>
+          <!-- Referral XP Row -->
+          <div class="reward-row" style="margin-top: 0.8rem; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 0.8rem;">
+            <div class="reward-block">
+              <span class="reward-label">Referral XP</span>
+              <div class="reward-value" style="color: var(--teal);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color: var(--teal);"><circle cx="12" cy="12" r="10"/></svg>
+                <span id="displayReferralXP">0</span> <span class="reward-unit" style="color: var(--teal);">XP</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Exam Details Card -->
@@ -756,63 +766,108 @@
             </ul>
           </div>
 
-          <!-- Future XP -->
-          <div class="inst-section">
-            <div class="inst-section-title">💎 Future XP Benefits</div>
-            <ul>
-              <li>Cash reward conversions</li>
-              <li>Discount coupons &amp; Exclusive offers</li>
-              <li>Premium feature unlocks</li>
-              <li>Scholarship opportunities &amp; Sponsored learning programs</li>
-              <li>Community leaderboard rewards</li>
-            </ul>
-            <div class="inst-note">The more <strong>consistently you perform</strong>, the greater your future benefits.</div>
+          <!-- Toggle Read More Button -->
+          <div id="readMoreBtnWrap" style="text-align: center; margin: 0.5rem 0 1.2rem;">
+            <button type="button" id="readMoreBtn" style="
+              background: rgba(77, 142, 255, 0.08);
+              border: 1px dashed var(--primary-btn);
+              color: var(--primary);
+              padding: 0.5rem 1.1rem;
+              border-radius: 8px;
+              cursor: pointer;
+              font-family: 'Sora', sans-serif;
+              font-size: 0.8rem;
+              font-weight: 600;
+              transition: all 0.2s ease;
+              display: inline-flex;
+              align-items: center;
+              gap: 0.4rem;
+            " onmouseover="this.style.background='rgba(77, 142, 255, 0.15)'" onmouseout="this.style.background='rgba(77, 142, 255, 0.08)'">
+              <span>📖</span> Read More Instructions
+            </button>
           </div>
 
-          <!-- Sponsorship -->
-          <div class="inst-section">
-            <div class="inst-section-title">🏆 Sponsorship &amp; Rank Opportunities</div>
-            <ul>
-              <li>Sponsorship opportunities &amp; Premium mentorship access</li>
-              <li>Featured leaderboard positions</li>
-              <li>Early access to Futrix programs</li>
-              <li>Community recognition badges</li>
-            </ul>
-          </div>
-
-          <!-- Daily XP -->
-          <div class="inst-section">
-            <div class="inst-section-title">🔥 Daily XP Opportunities</div>
-            <ul>
-              <li>Daily mock tests &amp; Quiz battles</li>
-              <li>Streak rewards &amp; Special challenges</li>
-              <li>Referral missions &amp; Leaderboard events</li>
-            </ul>
-            <div class="inst-note"><strong>Consistency</strong> matters more than one-time performance.</div>
-          </div>
-
-          <!-- Referral -->
-          <div class="inst-section">
-            <div class="inst-section-title">👥 Referral Reward Program</div>
-            <ul>
-              <li class="success">Every successful referral gives <strong>+150 XP Points</strong></li>
-              <li>Referral bonuses may increase during special campaigns</li>
-              <li class="danger">Abuse or fake referrals will result in <strong>XP removal</strong></li>
-            </ul>
-          </div>
-
-          <!-- Anti-Cheating -->
-          <div class="inst-section">
-            <div class="inst-section-title">⚠️ Anti-Cheating &amp; Fair Play Policy</div>
-            <ul>
-              <li class="danger">Tab switching repeatedly</li>
-              <li class="danger">Using external help / tools</li>
-              <li class="danger">Multiple device access</li>
-              <li class="danger">Copy-pasting answers or suspicious behavior</li>
-            </ul>
-            <div class="inst-note" style="border-color:rgba(255,154,60,0.3);background:rgba(255,154,60,0.06)">
-              If detected: XP → 0 · Result invalidated · Account warning · Possible suspension
+          <!-- Collapsible Instructions Panel -->
+          <div id="collapsibleInstructions" style="display: none;">
+            <!-- Future XP -->
+            <div class="inst-section">
+              <div class="inst-section-title">💎 Future XP Benefits</div>
+              <ul>
+                <li>Cash reward conversions</li>
+                <li>Discount coupons &amp; Exclusive offers</li>
+                <li>Premium feature unlocks</li>
+                <li>Scholarship opportunities &amp; Sponsored learning programs</li>
+                <li>Community leaderboard rewards</li>
+              </ul>
+              <div class="inst-note">The more <strong>consistently you perform</strong>, the greater your future benefits.</div>
             </div>
+
+            <!-- Sponsorship -->
+            <div class="inst-section">
+              <div class="inst-section-title">🏆 Sponsorship &amp; Rank Opportunities</div>
+              <ul>
+                <li>Sponsorship opportunities &amp; Premium mentorship access</li>
+                <li>Featured leaderboard positions</li>
+                <li>Early access to Futrix programs</li>
+                <li>Community recognition badges</li>
+              </ul>
+            </div>
+
+            <!-- Daily XP -->
+            <div class="inst-section">
+              <div class="inst-section-title">🔥 Daily XP Opportunities</div>
+              <ul>
+                <li>Daily mock tests &amp; Quiz battles</li>
+                <li>Streak rewards &amp; Special challenges</li>
+                <li>Referral missions &amp; Leaderboard events</li>
+              </ul>
+              <div class="inst-note"><strong>Consistency</strong> matters more than one-time performance.</div>
+            </div>
+
+            <!-- Referral -->
+            <div class="inst-section">
+              <div class="inst-section-title">👥 Referral Reward Program</div>
+              <ul>
+                <li class="success">Every successful referral gives <strong>+100 XP Points</strong></li>
+                <li>Referral bonuses may increase during special campaigns</li>
+                <li class="danger">Abuse or fake referrals will result in <strong>XP removal</strong></li>
+              </ul>
+            </div>
+
+            <!-- Anti-Cheating -->
+            <div class="inst-section">
+              <div class="inst-section-title">⚠️ Anti-Cheating &amp; Fair Play Policy</div>
+              <ul>
+                <li class="danger">Tab switching repeatedly</li>
+                <li class="danger">Using external help / tools</li>
+                <li class="danger">Multiple device access</li>
+                <li class="danger">Copy-pasting answers or suspicious behavior</li>
+              </ul>
+              <div class="inst-note" style="border-color:rgba(255,154,60,0.3);background:rgba(255,154,60,0.06)">
+                If detected: XP → 0 · Result invalidated · Account warning · Possible suspension
+              </div>
+            </div>
+          </div>
+
+          <!-- Toggle Hide Button (shown only when expanded) -->
+          <div id="hideInstBtnWrap" style="display: none; text-align: center; margin: 0.5rem 0 1.2rem;">
+            <button type="button" id="hideInstBtn" style="
+              background: rgba(77, 142, 255, 0.08);
+              border: 1px dashed var(--primary-btn);
+              color: var(--primary);
+              padding: 0.5rem 1.1rem;
+              border-radius: 8px;
+              cursor: pointer;
+              font-family: 'Sora', sans-serif;
+              font-size: 0.8rem;
+              font-weight: 600;
+              transition: all 0.2s ease;
+              display: inline-flex;
+              align-items: center;
+              gap: 0.4rem;
+            " onmouseover="this.style.background='rgba(77, 142, 255, 0.15)'" onmouseout="this.style.background='rgba(77, 142, 255, 0.08)'">
+              <span>📖</span> Hide Instructions
+            </button>
           </div>
 
           <!-- Guidelines -->
@@ -921,9 +976,11 @@
   const grade = getGrade(xp);
 
   // Update all XP display elements
+  const referralXp = parseFloat(user.referralXp || 0);
   document.getElementById('sidebarXP').textContent = xp.toFixed(2);
   document.getElementById('displayXP').textContent  = xp.toFixed(2);
   document.getElementById('displayRank').textContent = grade;
+  document.getElementById('displayReferralXP').textContent = referralXp.toFixed(2);
 
 
 
@@ -1091,7 +1148,7 @@
             
             <div style="background:rgba(77, 142, 255, 0.06); border:1px solid rgba(77, 142, 255, 0.25); border-radius:12px; padding:0.95rem 1.2rem; font-size:0.85rem; color:var(--text); line-height:1.5; display:flex; gap:0.8rem; align-items:flex-start;">
               <span style="font-size:1.2rem; line-height:1;">👥</span>
-              <div>Refer your friends and earn <strong style="color: var(--primary);">+150 XP Points</strong> for every successful referral.</div>
+              <div>Refer your friends and earn <strong style="color: var(--primary);">+100 XP Points</strong> for every successful referral.</div>
             </div>
 
             <div style="background:rgba(0, 229, 212, 0.06); border:1px solid rgba(0, 229, 212, 0.25); border-radius:12px; padding:0.95rem 1.2rem; font-size:0.85rem; color:var(--text); line-height:1.5; display:flex; gap:0.8rem; align-items:flex-start;">
@@ -1137,6 +1194,27 @@
     sidebar.classList.remove('open');
     overlay.classList.remove('open');
   });
+
+  /* ── Toggle Collapsible Instructions ── */
+  const readMoreBtnWrap = document.getElementById('readMoreBtnWrap');
+  const hideInstBtnWrap = document.getElementById('hideInstBtnWrap');
+  const readMoreBtn = document.getElementById('readMoreBtn');
+  const hideInstBtn = document.getElementById('hideInstBtn');
+  const collapsibleInst = document.getElementById('collapsibleInstructions');
+
+  if (readMoreBtn && hideInstBtn && collapsibleInst) {
+    readMoreBtn.addEventListener('click', () => {
+      collapsibleInst.style.display = 'block';
+      readMoreBtnWrap.style.display = 'none';
+      hideInstBtnWrap.style.display = 'block';
+    });
+
+    hideInstBtn.addEventListener('click', () => {
+      collapsibleInst.style.display = 'none';
+      readMoreBtnWrap.style.display = 'block';
+      hideInstBtnWrap.style.display = 'none';
+    });
+  }
 </script>
 </body>
 </html>
