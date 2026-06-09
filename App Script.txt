@@ -534,3 +534,19 @@ function verifyOTP(e) {
   }
   return { success: false, message: 'Invalid OTP code. Please try again.' };
 }
+
+// ── AUTHORIZE SCRIPT: Run this function once in the Apps Script Editor to trigger the OAuth Permission dialog
+function authorizeScript() {
+  Logger.log("Requesting authorization for email sending...");
+  try {
+    var email = Session.getActiveUser().getEmail();
+    if (email) {
+      MailApp.sendEmail(email, "FUTRIX Pilot Portal - Authorization Success", "Your Google Apps Script has been successfully authorized to send email verification OTPs!");
+      Logger.log("Test email sent to " + email + " successfully. Authorization complete!");
+    } else {
+      Logger.log("Active user email not found. Please ensure you are logged into your Google Account.");
+    }
+  } catch (err) {
+    Logger.log("Authorization error or MailApp failure: " + err.message);
+  }
+}
