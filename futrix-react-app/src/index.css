@@ -1192,6 +1192,191 @@ body::before {
   }
 }
 
+/* ── OTP Verification Modal CSS ── */
+.otp-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(8, 10, 16, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.otp-modal-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.otp-modal-content {
+  background: rgba(18, 22, 33, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 2.5rem;
+  width: 90%;
+  max-width: 440px;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transform: scale(0.9) translateY(20px);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  color: #ffffff;
+  text-align: center;
+}
+
+.otp-modal-overlay.show .otp-modal-content {
+  transform: scale(1) translateY(0);
+}
+
+.otp-modal-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.5rem;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.otp-modal-close:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.otp-modal-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  display: inline-block;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.otp-modal-header h2 {
+  font-family: 'Sora', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+}
+
+.otp-modal-header p {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  line-height: 1.5;
+  margin: 0 0 2rem 0;
+}
+
+.otp-modal-header p strong {
+  color: #4d8eff;
+}
+
+.otp-input-wrapper {
+  margin-bottom: 1.5rem;
+}
+
+.otp-modal-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.85rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 8px;
+  text-align: center;
+  color: #ffffff;
+  transition: all 0.2s ease;
+  font-family: monospace;
+}
+
+.otp-modal-input:focus {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: #4d8eff;
+  box-shadow: 0 0 15px rgba(77, 142, 255, 0.25);
+  outline: none;
+}
+
+.otp-timer-text {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-bottom: 1.5rem;
+}
+
+.otp-modal-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #4d8eff, #6fa3ff);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 0.85rem;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(77, 142, 255, 0.3);
+  transition: all 0.2s ease;
+}
+
+.otp-modal-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(77, 142, 255, 0.4);
+}
+
+.otp-modal-btn:disabled {
+  background: rgba(255, 255, 255, 0.08);
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.otp-modal-resend {
+  background: none;
+  border: none;
+  color: #4d8eff;
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.2s ease;
+  opacity: 0.8;
+}
+
+.otp-modal-resend:hover:not(:disabled) {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.otp-modal-resend:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
 
 /* ══════════════════════════════════════════════════════════════════════════
    2. LOGIN PAGE CONTAINER STYLES (login.html)

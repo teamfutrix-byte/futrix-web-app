@@ -481,10 +481,22 @@ function sendOTP(e) {
   var email = (e.parameter.email || '').toLowerCase().trim();
   if (!email) return { success: false, message: 'Email address is required.' };
   
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Check if email is already registered in the responses sheet
+  var regSheet = ss.getSheets()[0];
+  var regData = regSheet.getDataRange().getValues();
+  var emailCol = getColumnIndexByName(regSheet, 'email', 3);
+  for (var i = 1; i < regData.length; i++) {
+    var rowEmail = String(regData[i][emailCol - 1] || '').toLowerCase().trim();
+    if (rowEmail === email) {
+      return { success: false, message: 'This email address is already registered. Please login or use a different email.' };
+    }
+  }
+  
   // Generate 6-digit OTP
   var otp = Math.floor(100000 + Math.random() * 900000).toString();
   
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('OTPs');
   if (!sheet) {
     sheet = ss.insertSheet('OTPs');

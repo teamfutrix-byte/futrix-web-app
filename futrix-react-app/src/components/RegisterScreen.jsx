@@ -26,6 +26,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
   const [otpCooldown, setOtpCooldown] = useState(0);
   const [isOtpSending, setIsOtpSending] = useState(false);
   const [isOtpVerifying, setIsOtpVerifying] = useState(false);
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
 
   // Field validation errors
   const [errors, setErrors] = useState({
@@ -115,6 +116,8 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
       if (res && res.success) {
         onShowToast('OTP verification code sent to your email!', 'success');
         setIsOtpSent(true);
+        setOtp('');
+        setIsOtpModalOpen(true);
         setOtpCooldown(60);
       } else {
         onShowToast(res ? res.message : 'Failed to send OTP. Try again.', 'error');
@@ -139,6 +142,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
       if (res && res.success) {
         onShowToast('Email verified successfully! ✓', 'success');
         setIsEmailVerified(true);
+        setIsOtpModalOpen(false);
       } else {
         onShowToast(res ? res.message : 'Invalid OTP. Please try again.', 'error');
       }
@@ -343,47 +347,6 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
                       <div className="field-error">Please enter a valid email address</div>
                     </div>
 
-                    {/* Email OTP Verification */}
-                    {isOtpSent && !isEmailVerified && (
-                      <div className="field" style={{ position: 'relative', marginTop: '0.5rem' }}>
-                        <input 
-                          type="text" 
-                          id="emailOTP" 
-                          value={otp}
-                          onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
-                          placeholder="e.g. 123456"
-                          maxLength="6"
-                          style={{ paddingRight: '95px' }}
-                        />
-                        <label htmlFor="emailOTP">Email Verification OTP</label>
-                        <button 
-                          type="button" 
-                          id="verifyOtpBtn" 
-                          disabled={isOtpVerifying}
-                          onClick={handleVerifyOTP}
-                          style={{
-                            position: 'absolute',
-                            right: '0',
-                            bottom: '6px',
-                            background: 'rgba(0, 230, 118, 0.15)',
-                            border: '1px solid var(--success)',
-                            color: 'var(--success)',
-                            fontFamily: "'Geist', sans-serif",
-                            fontSize: '0.7rem',
-                            fontWeight: '600',
-                            padding: '0.35rem 0.65rem',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            zIndex: 10
-                          }}
-                        >
-                          {isOtpVerifying ? 'Verifying...' : 'Verify OTP'}
-                        </button>
-                        <div className="field-line" style={{ width: 'calc(100% - 95px)' }}></div>
-                        <div className="field-error">Please enter the 6-digit OTP code sent to your email</div>
-                      </div>
-                    )}
 
                     {/* Phone */}
                     <div className={`field ${errors.phone ? 'error' : ''}`}>
@@ -649,6 +612,59 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
 
         <Footer />
       </main>
+
+      {/* OTP Verification Modal */}
+      {isOtpModalOpen && (
+        <div className="otp-modal-overlay show" onClick={(e) => { if (e.target.classList.contains('otp-modal-overlay')) setIsOtpModalOpen(false); }}>
+          <div className="otp-modal-content">
+            <button 
+              type="button" 
+              className="otp-modal-close" 
+              onClick={() => setIsOtpModalOpen(false)}
+            >
+              &times;
+            </button>
+            <div className="otp-modal-header">
+              <div className="otp-modal-icon">✉️</div>
+              <h2>Verify Your Email</h2>
+              <p>We've sent a 6-digit verification code to <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{email}</span>.<br/>Please enter it below to verify your account.</p>
+            </div>
+            <div className="otp-input-wrapper">
+              <input 
+                type="text" 
+                className="otp-modal-input" 
+                placeholder="••••••" 
+                maxLength={6} 
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                autoComplete="one-time-code" 
+              />
+            </div>
+            <div className="otp-timer-text">
+              {otpCooldown > 0 ? `Resend OTP in ${otpCooldown}s` : 'You can now resend the verification code.'}
+            </div>
+            <button 
+              type="button" 
+              className="otp-modal-btn" 
+              disabled={isOtpVerifying}
+              onClick={handleVerifyOTP}
+            >
+              <span>Verify Code</span>
+              {isOtpVerifying && (
+                <div className="spinner" style={{ display: 'inline-block', width: '16px', height: '16px', borderWidth: '2px', marginLeft: '0.5rem' }}></div>
+              )}
+            </button>
+            <button 
+              type="button" 
+              className="otp-modal-resend" 
+              disabled={otpCooldown > 0 || isOtpSending}
+              onClick={handleSendOTP}
+            >
+              {isOtpSending ? 'Sending...' : 'Resend Code'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
