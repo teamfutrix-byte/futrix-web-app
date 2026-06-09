@@ -483,9 +483,7 @@ function sendOTP(e) {
   
   // Send email
   try {
-    MailApp.sendEmail({
-      to: email,
-      subject: "FUTRIX Pilot Portal - Email Verification OTP",
+    GmailApp.sendEmail(email, "FUTRIX Pilot Portal - Email Verification OTP", "", {
       htmlBody: "<div style='font-family: Arial, sans-serif; max-width: 500px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>" +
                 "<h2 style='color: #4d8eff; margin-top: 0;'>Futrix Registration</h2>" +
                 "<p>Thank you for registering at Futrix Pilot Portal. Use the following One-Time Password (OTP) to verify your email address:</p>" +
@@ -543,12 +541,12 @@ function authorizeScript() {
   try {
     var email = Session.getActiveUser().getEmail();
     if (email) {
-      MailApp.sendEmail(email, "FUTRIX Pilot Portal - Authorization Success", "Your Google Apps Script has been successfully authorized to send email verification OTPs!");
+      GmailApp.sendEmail(email, "FUTRIX Pilot Portal - Authorization Success", "Your Google Apps Script has been successfully authorized to send email verification OTPs using GmailApp!");
       Logger.log("Test email sent to " + email + " successfully. Authorization complete!");
     } else {
       Logger.log("Active user email not found. Please ensure you are logged into your Google Account.");
     }
   } catch (err) {
-    Logger.log("Authorization error or MailApp failure: " + err.message);
+    Logger.log("Authorization error or GmailApp failure: " + err.message);
   }
 }
