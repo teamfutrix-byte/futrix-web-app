@@ -33,6 +33,8 @@ function doGet(e) {
     else if (action === 'checkAttempt') result = checkAttempt(e);
     else if (action === 'checkRegistration') result = checkRegistration(e);
     else if (action === 'register') result = saveRegistration(e);
+    else if (action === 'sendOTP')   result = sendOTP(e);
+    else if (action === 'verifyOTP') result = verifyOTP(e);
     else                             result = verifyLogin(e);
   } catch (err) {
     result = { success: false, message: 'Error: ' + err.message };
@@ -320,6 +322,28 @@ function saveRegistration(e) {
   if (!fullName || !email || !phone) {
     return { success: false, message: 'Required fields (Full Name, Email Address, and Phone Number) are missing.' };
   }
+
+  // Verify that the email was successfully verified in the OTPs sheet within the last 15 minutes (900,000 ms)
+  var otpSheet = ss.getSheetByName('OTPs');
+  var emailVerified = false;
+  if (otpSheet) {
+    var otpData = otpSheet.getDataRange().getValues();
+    var nowTime = new Date().getTime();
+    for (var k = otpData.length - 1; k >= 1; k--) {
+      var oEmail = String(otpData[k][1]).toLowerCase().trim();
+      var oStatus = String(otpData[k][3]).trim();
+      var oTime = new Date(otpData[k][0]).getTime();
+      if (oEmail === email && oStatus === 'verified') {
+        if (nowTime - oTime < 900000) { // 15 mins
+          emailVerified = true;
+          break;
+        }
+      }
+    }
+  }
+  if (!emailVerified) {
+    return { success: false, message: 'Your email address is not verified. Please verify it using OTP first.' };
+  }
   
   // Prevent duplicate email/phone check (similar to checkRegistration)
   var data = sheet.getDataRange().getValues();
@@ -432,4 +456,83 @@ function saveRegistration(e) {
   }
   
   return { success: true, message: 'Registration successful!' };
+}
+
+// ── SEND OTP: Generates and emails a 6-digit verification code
+function sendOTP(e) {
+  var email = (e.parameter.email || '').toLowerCase().trim();
+  if (!email) return { success: false, message: 'Email address is required.' };
+  
+  // Generate 6-digit OTP
+  var otp = Math.floor(100000 + Math.random() * 900000).toString();
+  
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('OTPs');
+  if (!sheet) {
+    sheet = ss.insertSheet('OTPs');
+    sheet.appendRow(['Timestamp', 'Email', 'OTP', 'Status']);
+    var hr = sheet.getRange(1, 1, 1, 4);
+    hr.setFontWeight('bold');
+    hr.setBackground('#ea4335');
+    hr.setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+  }
+  
+  // Save OTP in the sheet
+  sheet.appendRow([new Date(), email, otp, 'pending']);
+  
+  // Send email
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: "FUTRIX Pilot Portal - Email Verification OTP",
+      htmlBody: "<div style='font-family: Arial, sans-serif; max-width: 500px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>" +
+                "<h2 style='color: #4d8eff; margin-top: 0;'>Futrix Registration</h2>" +
+                "<p>Thank you for registering at Futrix Pilot Portal. Use the following One-Time Password (OTP) to verify your email address:</p>" +
+                "<div style='font-size: 28px; font-weight: bold; letter-spacing: 4px; text-align: center; padding: 15px; background: #f5f8ff; border-radius: 6px; color: #4d8eff; margin: 20px 0;'>" + otp + "</div>" +
+                "<p style='color: #666; font-size: 13px;'>This OTP is valid for 10 minutes. Please do not share this code with anyone.</p>" +
+                "<hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>" +
+                "<p style='color: #999; font-size: 11px; text-align: center;'>Futrix Exam Portal &copy; 2026</p>" +
+                "</div>"
+    });
+    return { success: true, message: 'OTP sent successfully to your email.' };
+  } catch (err) {
+    return { success: false, message: 'Error sending email: ' + err.message };
+  }
+}
+
+// ── VERIFY OTP: Validates the entered OTP code
+function verifyOTP(e) {
+  var email = (e.parameter.email || '').toLowerCase().trim();
+  var otp = (e.parameter.otp || '').trim();
+  if (!email || !otp) return { success: false, message: 'Email and OTP are required.' };
+  
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('OTPs');
+  if (!sheet) return { success: false, message: 'No OTP records found.' };
+  
+  var data = sheet.getDataRange().getValues();
+  var now = new Date().getTime();
+  
+  // Search from the end to get the latest OTP
+  for (var i = data.length - 1; i >= 1; i--) {
+    var rowEmail = String(data[i][1]).toLowerCase().trim();
+    var rowOtp = String(data[i][2]).trim();
+    var rowStatus = String(data[i][3]).trim();
+    var rowTime = new Date(data[i][0]).getTime();
+    
+    if (rowEmail === email && rowOtp === otp) {
+      if (rowStatus === 'verified') {
+        return { success: true, message: 'Email already verified.' };
+      }
+      // Check if OTP is less than 10 minutes old (600,000 ms)
+      if (now - rowTime < 600000) {
+        sheet.getRange(i + 1, 4).setValue('verified');
+        return { success: true, message: 'Email verified successfully!' };
+      } else {
+        return { success: false, message: 'OTP has expired. Please request a new one.' };
+      }
+    }
+  }
+  return { success: false, message: 'Invalid OTP code. Please try again.' };
 }

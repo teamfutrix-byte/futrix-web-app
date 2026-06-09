@@ -1306,11 +1306,51 @@
               </div>
 
               <!-- Email -->
-              <div class="field" id="fieldEmail">
-                <input type="email" id="emailAddress" name="emailAddress" placeholder="e.g. rajesh@gmail.com" autocomplete="email" />
+              <div class="field" id="fieldEmail" style="position: relative;">
+                <input type="email" id="emailAddress" name="emailAddress" placeholder="e.g. rajesh@gmail.com" autocomplete="email" style="padding-right: 95px;" />
                 <label for="emailAddress">Email Address</label>
-                <div class="field-line"></div>
+                <button type="button" id="sendOtpBtn" style="
+                  position: absolute;
+                  right: 0;
+                  bottom: 6px;
+                  background: rgba(77, 142, 255, 0.15);
+                  border: 1px solid var(--primary-btn);
+                  color: var(--primary);
+                  font-family: 'Geist', sans-serif;
+                  font-size: 0.7rem;
+                  font-weight: 600;
+                  padding: 0.35rem 0.65rem;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  transition: all 0.2s ease;
+                  z-index: 10;
+                ">Send OTP</button>
+                <div class="field-line" style="width: calc(100% - 95px);"></div>
                 <div class="field-error">Please enter a valid email address</div>
+              </div>
+
+              <!-- Email OTP Verification Code -->
+              <div class="field" id="fieldEmailOTP" style="display: none; position: relative; margin-top: 0.5rem;">
+                <input type="text" id="emailOTP" placeholder="e.g. 123456" maxlength="6" style="padding-right: 95px;" />
+                <label for="emailOTP">Email Verification OTP</label>
+                <button type="button" id="verifyOtpBtn" style="
+                  position: absolute;
+                  right: 0;
+                  bottom: 6px;
+                  background: rgba(0, 230, 118, 0.15);
+                  border: 1px solid var(--success);
+                  color: var(--success);
+                  font-family: 'Geist', sans-serif;
+                  font-size: 0.7rem;
+                  font-weight: 600;
+                  padding: 0.35rem 0.65rem;
+                  border-radius: 6px;
+                  cursor: pointer;
+                  transition: all 0.2s ease;
+                  z-index: 10;
+                ">Verify OTP</button>
+                <div class="field-line" style="width: calc(100% - 95px);"></div>
+                <div class="field-error">Please enter the 6-digit OTP code sent to your email</div>
               </div>
 
               <!-- Phone -->
@@ -1575,6 +1615,115 @@
       }, 400);
     });
 
+    // ── Email OTP Verification Logic
+    let isEmailVerified = false;
+    let otpCooldown = 0;
+    let cooldownInterval = null;
+
+    function startCooldown() {
+      const btn = document.getElementById('sendOtpBtn');
+      otpCooldown = 60;
+      btn.disabled = true;
+      btn.textContent = `Resend (${otpCooldown}s)`;
+      
+      cooldownInterval = setInterval(() => {
+        otpCooldown--;
+        if (otpCooldown <= 0) {
+          clearInterval(cooldownInterval);
+          btn.disabled = false;
+          btn.textContent = 'Send OTP';
+        } else {
+          btn.textContent = `Resend (${otpCooldown}s)`;
+        }
+      }, 1000);
+    }
+
+    document.getElementById('sendOtpBtn').addEventListener('click', async () => {
+      const emailInput = document.getElementById('emailAddress');
+      const email = emailInput.value.trim();
+      const emailField = document.getElementById('fieldEmail');
+      
+      emailField.classList.remove('error');
+      
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        emailField.classList.add('error');
+        showToast('Please enter a valid email address first.', 'error');
+        return;
+      }
+      
+      const btn = document.getElementById('sendOtpBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      
+      try {
+        const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'sendOTP', email: email });
+        if (res && res.success) {
+          showToast('OTP verification code sent to your email!', 'success');
+          document.getElementById('fieldEmailOTP').style.display = 'block';
+          startCooldown();
+        } else {
+          showToast(res ? res.message : 'Failed to send OTP. Try again.', 'error');
+          btn.disabled = false;
+          btn.textContent = 'Send OTP';
+        }
+      } catch (err) {
+        console.error('OTP send error:', err);
+        showToast('Error sending OTP. Please check connection and try again.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Send OTP';
+      }
+    });
+
+    document.getElementById('verifyOtpBtn').addEventListener('click', async () => {
+      const email = document.getElementById('emailAddress').value.trim();
+      const otpInput = document.getElementById('emailOTP');
+      const otp = otpInput.value.trim();
+      const otpField = document.getElementById('fieldEmailOTP');
+      
+      otpField.classList.remove('error');
+      
+      if (!otp || otp.length !== 6 || isNaN(otp)) {
+        otpField.classList.add('error');
+        showToast('Please enter a valid 6-digit OTP code.', 'error');
+        return;
+      }
+      
+      const btn = document.getElementById('verifyOtpBtn');
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+      
+      try {
+        const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'verifyOTP', email: email, otp: otp });
+        if (res && res.success) {
+          showToast('Email verified successfully! ✓', 'success');
+          isEmailVerified = true;
+          
+          // Disable email editing and hide OTP input
+          document.getElementById('emailAddress').readOnly = true;
+          document.getElementById('fieldEmailOTP').style.display = 'none';
+          
+          // Style Send OTP button as verified
+          const sendBtn = document.getElementById('sendOtpBtn');
+          sendBtn.textContent = 'Verified ✓';
+          sendBtn.style.background = 'rgba(0, 230, 118, 0.15)';
+          sendBtn.style.borderColor = 'var(--success)';
+          sendBtn.style.color = 'var(--success)';
+          sendBtn.disabled = true;
+          if (cooldownInterval) clearInterval(cooldownInterval);
+        } else {
+          showToast(res ? res.message : 'Invalid OTP. Please try again.', 'error');
+          otpField.classList.add('error');
+          btn.disabled = false;
+          btn.textContent = 'Verify OTP';
+        }
+      } catch (err) {
+        console.error('OTP verify error:', err);
+        showToast('Error verifying OTP. Please try again.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Verify OTP';
+      }
+    });
+
     // ── Prep Buttons Selection
     let selectedExam = '';
 
@@ -1623,13 +1772,26 @@
         if (f) f.classList.remove('error');
       });
 
+      function isFakePhone(phone) {
+        const clean = phone.replace(/[^0-9]/g, '');
+        if (clean.length < 10) return true;
+        if (/^(\d)\1{9,}$/.test(clean)) return true;
+        if (clean === '1234567890' || clean === '0123456789' || clean === '9876543210') return true;
+        return false;
+      }
+
       if (!name.trim() || name.trim().length < 2) {
         nameField.classList.add('error'); valid = false;
       }
       if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
         emailField.classList.add('error'); valid = false;
       }
-      if (!phone.trim() || !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(phone.trim())) {
+      if (!isEmailVerified) {
+        showToast('Please verify your email address via OTP first.', 'error');
+        emailField.classList.add('error');
+        valid = false;
+      }
+      if (!phone.trim() || !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(phone.trim()) || isFakePhone(phone.trim())) {
         phoneField.classList.add('error'); valid = false;
       }
       if (!dobVal.trim()) {
@@ -1638,7 +1800,7 @@
       if (!guardianNameVal.trim() || guardianNameVal.trim().length < 2) {
         guardianNameField.classList.add('error'); valid = false;
       }
-      if (!guardianContactVal.trim() || !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(guardianContactVal.trim())) {
+      if (!guardianContactVal.trim() || !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(guardianContactVal.trim()) || isFakePhone(guardianContactVal.trim())) {
         guardianContactField.classList.add('error'); valid = false;
       }
       if (!cityVal.trim() || cityVal.trim().length < 2) {

@@ -19,6 +19,14 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
   const [otherExam, setOtherExam] = useState('');
   const [referral, setReferral] = useState('');
 
+  // Email Verification States
+  const [otp, setOtp] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [otpCooldown, setOtpCooldown] = useState(0);
+  const [isOtpSending, setIsOtpSending] = useState(false);
+  const [isOtpVerifying, setIsOtpVerifying] = useState(false);
+
   // Field validation errors
   const [errors, setErrors] = useState({
     name: false,
@@ -67,6 +75,71 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
     setErrors(prev => ({ ...prev, phone: false }));
   };
 
+  // Cooldown timer effect
+  useEffect(() => {
+    if (otpCooldown <= 0) return;
+    const timer = setTimeout(() => {
+      setOtpCooldown(prev => prev - 1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [otpCooldown]);
+
+  const isFakePhone = (val) => {
+    const clean = val.replace(/[^0-9]/g, '');
+    if (clean.length < 10) return true;
+    if (/^(\d)\1{9,}$/.test(clean)) return true;
+    if (clean === '1234567890' || clean === '0123456789' || clean === '9876543210') return true;
+    return false;
+  };
+
+  const handleSendOTP = async () => {
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setErrors(prev => ({ ...prev, email: true }));
+      onShowToast('Please enter a valid email address first.', 'error');
+      return;
+    }
+    
+    setIsOtpSending(true);
+    try {
+      const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'sendOTP', email: email.trim() });
+      if (res && res.success) {
+        onShowToast('OTP verification code sent to your email!', 'success');
+        setIsOtpSent(true);
+        setOtpCooldown(60);
+      } else {
+        onShowToast(res ? res.message : 'Failed to send OTP. Try again.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      onShowToast('Error sending OTP. Please check your connection.', 'error');
+    } finally {
+      setIsOtpSending(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    if (!otp.trim() || otp.trim().length !== 6 || isNaN(otp.trim())) {
+      onShowToast('Please enter a valid 6-digit OTP.', 'error');
+      return;
+    }
+    
+    setIsOtpVerifying(true);
+    try {
+      const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'verifyOTP', email: email.trim(), otp: otp.trim() });
+      if (res && res.success) {
+        onShowToast('Email verified successfully! ✓', 'success');
+        setIsEmailVerified(true);
+      } else {
+        onShowToast(res ? res.message : 'Invalid OTP. Please try again.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      onShowToast('Error verifying OTP. Please try again.', 'error');
+    } finally {
+      setIsOtpVerifying(false);
+    }
+  };
+
   const validate = () => {
     let valid = true;
     const newErrors = {
@@ -89,7 +162,12 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
       newErrors.email = true;
       valid = false;
     }
-    if (!phone.trim() || !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(phone.trim())) {
+    if (!isEmailVerified) {
+      onShowToast('Please verify your email address via OTP first.', 'error');
+      newErrors.email = true;
+      valid = false;
+    }
+    if (!phone.trim() || !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(phone.trim()) || isFakePhone(phone.trim())) {
       newErrors.phone = true;
       valid = false;
     }
@@ -101,7 +179,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
       newErrors.guardianName = true;
       valid = false;
     }
-    if (!guardianContact.trim() || !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(guardianContact.trim())) {
+    if (!guardianContact.trim() || !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(guardianContact.trim()) || isFakePhone(guardianContact.trim())) {
       newErrors.guardianContact = true;
       valid = false;
     }
@@ -215,7 +293,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
                     </div>
 
                     {/* Email */}
-                    <div className={`field ${errors.email ? 'error' : ''}`}>
+                    <div className={`field ${errors.email ? 'error' : ''}`} style={{ position: 'relative' }}>
                       <input 
                         type="email" 
                         id="emailAddress" 
@@ -223,11 +301,79 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
                         onChange={(e) => { setEmail(e.target.value); setErrors(prev => ({ ...prev, email: false })); }}
                         placeholder="e.g. rajesh@gmail.com" 
                         autoComplete="email" 
+                        style={{ paddingRight: '95px' }}
+                        readOnly={isEmailVerified}
                       />
                       <label htmlFor="emailAddress">Email Address</label>
-                      <div className="field-line"></div>
+                      <button 
+                        type="button" 
+                        id="sendOtpBtn" 
+                        disabled={isOtpSending || otpCooldown > 0 || isEmailVerified}
+                        onClick={handleSendOTP}
+                        style={{
+                          position: 'absolute',
+                          right: '0',
+                          bottom: '6px',
+                          background: isEmailVerified ? 'rgba(0, 230, 118, 0.15)' : 'rgba(77, 142, 255, 0.15)',
+                          border: isEmailVerified ? '1px solid var(--success)' : '1px solid var(--primary-btn)',
+                          color: isEmailVerified ? 'var(--success)' : 'var(--primary)',
+                          fontFamily: "'Geist', sans-serif",
+                          fontSize: '0.7rem',
+                          fontWeight: '600',
+                          padding: '0.35rem 0.65rem',
+                          borderRadius: '6px',
+                          cursor: isEmailVerified ? 'default' : 'pointer',
+                          transition: 'all 0.2s ease',
+                          zIndex: 10
+                        }}
+                      >
+                        {isEmailVerified ? 'Verified ✓' : isOtpSending ? 'Sending...' : otpCooldown > 0 ? `Resend (${otpCooldown}s)` : 'Send OTP'}
+                      </button>
+                      <div className="field-line" style={{ width: 'calc(100% - 95px)' }}></div>
                       <div className="field-error">Please enter a valid email address</div>
                     </div>
+
+                    {/* Email OTP Verification */}
+                    {isOtpSent && !isEmailVerified && (
+                      <div className="field" style={{ position: 'relative', marginTop: '0.5rem' }}>
+                        <input 
+                          type="text" 
+                          id="emailOTP" 
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                          placeholder="e.g. 123456"
+                          maxLength="6"
+                          style={{ paddingRight: '95px' }}
+                        />
+                        <label htmlFor="emailOTP">Email Verification OTP</label>
+                        <button 
+                          type="button" 
+                          id="verifyOtpBtn" 
+                          disabled={isOtpVerifying}
+                          onClick={handleVerifyOTP}
+                          style={{
+                            position: 'absolute',
+                            right: '0',
+                            bottom: '6px',
+                            background: 'rgba(0, 230, 118, 0.15)',
+                            border: '1px solid var(--success)',
+                            color: 'var(--success)',
+                            fontFamily: "'Geist', sans-serif",
+                            fontSize: '0.7rem',
+                            fontWeight: '600',
+                            padding: '0.35rem 0.65rem',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            zIndex: 10
+                          }}
+                        >
+                          {isOtpVerifying ? 'Verifying...' : 'Verify OTP'}
+                        </button>
+                        <div className="field-line" style={{ width: 'calc(100% - 95px)' }}></div>
+                        <div className="field-error">Please enter the 6-digit OTP code sent to your email</div>
+                      </div>
+                    )}
 
                     {/* Phone */}
                     <div className={`field ${errors.phone ? 'error' : ''}`}>
