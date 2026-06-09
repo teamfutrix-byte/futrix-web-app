@@ -86,9 +86,19 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
 
   const isFakePhone = (val) => {
     const clean = val.replace(/[^0-9]/g, '');
-    if (clean.length < 10) return true;
-    if (/^(\d)\1{9,}$/.test(clean)) return true;
-    if (clean === '1234567890' || clean === '0123456789' || clean === '9876543210') return true;
+    if (clean.length !== 10) return true;
+    if (!/^[6-9]/.test(clean)) return true;
+    if (/(\d)\1{4,}/.test(clean)) return true;
+    if (/^(\d{2})\1{4}$/.test(clean)) return true;
+    if (/^(\d{3})\1{2}\d$/.test(clean)) return true;
+    const sequentialUp = "0123456789";
+    const sequentialDown = "9876543210";
+    if (sequentialUp.indexOf(clean) !== -1 || sequentialDown.indexOf(clean) !== -1) return true;
+    const testPatterns = [
+      "1234512345", "9876598765", "6789067890", "1234567890", "0123456789", 
+      "9876543210", "8765432109", "7654321098", "6543210987", "5432109876"
+    ];
+    if (testPatterns.indexOf(clean) !== -1) return true;
     return false;
   };
 
@@ -167,7 +177,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
       newErrors.email = true;
       valid = false;
     }
-    if (!phone.trim() || !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(phone.trim()) || isFakePhone(phone.trim())) {
+    if (!phone.trim() || isFakePhone(phone.trim())) {
       newErrors.phone = true;
       valid = false;
     }
@@ -179,7 +189,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
       newErrors.guardianName = true;
       valid = false;
     }
-    if (!guardianContact.trim() || !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(guardianContact.trim()) || isFakePhone(guardianContact.trim())) {
+    if (!guardianContact.trim() || isFakePhone(guardianContact.trim())) {
       newErrors.guardianContact = true;
       valid = false;
     }

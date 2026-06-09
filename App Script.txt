@@ -333,6 +333,14 @@ function saveRegistration(e) {
     return { success: false, message: 'Required fields (Full Name, Email Address, and Phone Number) are missing.' };
   }
 
+  // Validate mobile numbers to prevent fake registrations
+  if (isFakePhone(phone)) {
+    return { success: false, message: 'Invalid phone number. Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.' };
+  }
+  if (guardianContact && isFakePhone(guardianContact)) {
+    return { success: false, message: 'Invalid Father\'s/Guardian\'s contact number. Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.' };
+  }
+
   // Verify that the email was successfully verified in the OTPs sheet within the last 15 minutes (900,000 ms)
   var otpSheet = ss.getSheetByName('OTPs');
   var emailVerified = false;
@@ -587,6 +595,29 @@ function sendEmailViaProvider(email, subject, otp, htmlBody) {
     htmlBody: htmlBody
   });
   return true;
+}
+
+// ── PHONE VALIDATION: Validates Indian mobile number format & prevents dummy numbers
+function isFakePhone(phone) {
+  if (!phone) return true;
+  var clean = phone.replace(/[^0-9]/g, '');
+  if (clean.length !== 10) return true;
+  if (!/^[6-9]/.test(clean)) return true;
+  if (/(\d)\1{4,}/.test(clean)) return true;
+  if (/^(\d{2})\1{4}$/.test(clean)) return true;
+  if (/^(\d{3})\1{2}\d$/.test(clean)) return true;
+  
+  var sequentialUp = "0123456789";
+  var sequentialDown = "9876543210";
+  if (sequentialUp.indexOf(clean) !== -1 || sequentialDown.indexOf(clean) !== -1) return true;
+  
+  var testPatterns = [
+    "1234512345", "9876598765", "6789067890", "1234567890", "0123456789", 
+    "9876543210", "8765432109", "7654321098", "6543210987", "5432109876"
+  ];
+  if (testPatterns.indexOf(clean) !== -1) return true;
+  
+  return false;
 }
 
 // ── VERIFY OTP: Validates the entered OTP code
