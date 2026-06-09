@@ -76,6 +76,45 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
     setErrors(prev => ({ ...prev, phone: false }));
   };
 
+  const handleDobChange = (val) => {
+    let value = val.replace(/\D/g, '');
+    if (value.length > 8) {
+      value = value.slice(0, 8);
+    }
+    let formatted = '';
+    if (value.length > 0) formatted += value.substring(0, 2);
+    if (value.length > 2) formatted += '/' + value.substring(2, 4);
+    if (value.length > 4) formatted += '/' + value.substring(4, 8);
+    setDob(formatted);
+    setErrors(prev => ({ ...prev, dob: false }));
+  };
+
+  const isValidDOB = (dobStr) => {
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dobStr)) return false;
+    const parts = dobStr.split('/');
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10);
+    const year = parseInt(parts[2], 10);
+    
+    const currentYear = new Date().getFullYear();
+    if (year < 1900 || year > currentYear) return false;
+    if (month < 1 || month > 12) return false;
+    
+    const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+    const monthDays = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    
+    if (day < 1 || day > monthDays[month - 1]) return false;
+    
+    const today = new Date();
+    const birthDate = new Date(year, month - 1, day);
+    if (birthDate.getFullYear() !== year || birthDate.getMonth() !== month - 1 || birthDate.getDate() !== day) {
+      return false;
+    }
+    if (birthDate > today) return false;
+    
+    return true;
+  };
+
   // Cooldown timer effect
   useEffect(() => {
     if (otpCooldown <= 0) return;
@@ -231,7 +270,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
       newErrors.phone = true;
       valid = false;
     }
-    if (!dob.trim()) {
+    if (!dob.trim() || !isValidDOB(dob.trim())) {
       newErrors.dob = true;
       valid = false;
     }
@@ -364,14 +403,13 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
                         type="text" 
                         id="dob" 
                         value={dob}
-                        onChange={(e) => { setDob(e.target.value); setErrors(prev => ({ ...prev, dob: false })); }}
-                        placeholder="e.g. 1998-05-15"
-                        onFocus={(e) => (e.target.type = 'date')}
-                        onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
+                        onChange={(e) => handleDobChange(e.target.value)}
+                        placeholder="DD/MM/YYYY"
+                        maxLength="10"
                       />
                       <label htmlFor="dob">Date of Birth</label>
                       <div className="field-line"></div>
-                      <div className="field-error">Please enter your date of birth</div>
+                      <div className="field-error">Please enter your date of birth (DD/MM/YYYY)</div>
                     </div>
 
                     {/* Father's / Guardian's Name */}

@@ -333,6 +333,11 @@ function saveRegistration(e) {
     return { success: false, message: 'Required fields (Full Name, Email Address, and Phone Number) are missing.' };
   }
 
+  // Validate Date of Birth format & values
+  if (!dob || !isValidDOBBackend(dob)) {
+    return { success: false, message: 'Invalid Date of Birth. Please enter a valid date in DD/MM/YYYY format.' };
+  }
+
   // Validate mobile numbers to prevent fake registrations
   if (isFakePhone(phone)) {
     return { success: false, message: 'Invalid phone number. Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.' };
@@ -612,6 +617,33 @@ function sendEmailViaProvider(email, subject, otp, htmlBody) {
     name: "FUTRIX Pilot Portal",
     htmlBody: htmlBody
   });
+  return true;
+}
+
+// ── DATE OF BIRTH VALIDATION: Strict format & calendar checks
+function isValidDOBBackend(dobStr) {
+  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dobStr)) return false;
+  var parts = dobStr.split('/');
+  var day = parseInt(parts[0], 10);
+  var month = parseInt(parts[1], 10);
+  var year = parseInt(parts[2], 10);
+  
+  var currentYear = new Date().getFullYear();
+  if (year < 1900 || year > currentYear) return false;
+  if (month < 1 || month > 12) return false;
+  
+  var isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+  var monthDays = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  
+  if (day < 1 || day > monthDays[month - 1]) return false;
+  
+  var today = new Date();
+  var birthDate = new Date(year, month - 1, day);
+  if (birthDate.getFullYear() !== year || birthDate.getMonth() !== month - 1 || birthDate.getDate() !== day) {
+    return false;
+  }
+  if (birthDate > today) return false;
+  
   return true;
 }
 
