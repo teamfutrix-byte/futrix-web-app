@@ -481,27 +481,15 @@ function sendOTP(e) {
   
   // Send email
   try {
-    var plainTextBody = "FUTRIX Pilot Portal - Email Verification\n\n" +
-                        "Your verification code (OTP) is: " + otp + "\n\n" +
-                        "This OTP is valid for 10 minutes. Please do not share this code with anyone.\n\n" +
-                        "Futrix Exam Portal © 2026";
+    var plainTextBody = "Hello Pilot,\n\n" +
+                        "Your email verification code for FUTRIX is: " + otp + "\n\n" +
+                        "Please enter this code on the registration page to verify your email address.\n\n" +
+                        "This code is valid for 10 minutes. Please do not share it with anyone.\n\n" +
+                        "Best regards,\n" +
+                        "FUTRIX Team";
 
-    GmailApp.sendEmail(email, "FUTRIX Pilot Portal - Email Verification OTP", plainTextBody, {
-      name: "FUTRIX Pilot Portal",
-      htmlBody: "<div style='font-family: Arial, sans-serif; max-width: 500px; padding: 25px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;'>" +
-                "<div style='text-align: center; margin-bottom: 20px;'>" +
-                "<h2 style='color: #4d8eff; font-family: \"Sora\", sans-serif; font-weight: 700; margin: 0; font-size: 24px; letter-spacing: -0.5px;'>Fut<span style='color: #a0aec0;'>rix</span></h2>" +
-                "<p style='color: #718096; font-size: 13px; margin: 5px 0 0 0;'>Ready to pilot your career?</p>" +
-                "</div>" +
-                "<div style='border-top: 2px solid #edf2f7; padding-top: 20px;'>" +
-                "<p style='color: #2d3748; font-size: 15px; line-height: 1.6;'>Hello Pilot,</p>" +
-                "<p style='color: #4a5568; font-size: 14px; line-height: 1.6;'>Thank you for registering at Futrix Pilot Portal. To complete your registration and verify your email address, please use the following One-Time Password (OTP):</p>" +
-                "<div style='font-size: 32px; font-weight: bold; letter-spacing: 5px; text-align: center; padding: 18px; background-color: #f7fafc; border: 1px dashed #cbd5e0; border-radius: 8px; color: #4d8eff; margin: 25px 0; font-family: Courier, monospace;'>" + otp + "</div>" +
-                "<p style='color: #e53e3e; font-size: 13px; font-weight: 500; margin: 15px 0;'>⚠️ This OTP is valid for 10 minutes. Please do not share this code with anyone.</p>" +
-                "</div>" +
-                "<hr style='border: none; border-top: 1px solid #edf2f7; margin: 25px 0;'>" +
-                "<p style='color: #a0aec0; font-size: 11px; text-align: center; margin: 0;'>This is an automated verification email from Futrix Exam Portal.<br>Futrix Exam Portal &copy; 2026</p>" +
-                "</div>"
+    GmailApp.sendEmail(email, "FUTRIX Verification Code: " + otp, plainTextBody, {
+      name: "FUTRIX Pilot Portal"
     });
     return { success: true, message: 'OTP sent successfully to your email.' };
   } catch (err) {
