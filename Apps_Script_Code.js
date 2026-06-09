@@ -2,20 +2,24 @@
  * Futrix Pilot Exam Portal - Google Apps Script Backend
  * 
  * ── GOOGLE SHEET COLUMN MAP (First Sheet - Registration / Responses) ──
- * After adding the new fields to your Google Form, the Google Sheet columns will map as:
+ * The Google Sheet columns map as:
  * - Column A: Timestamp
  * - Column B: Full Name
- * - Column C: Email Address  (index 2, verified in code)
- * - Column D: Phone Number   (index 3, verified in code)
- * - Column E: Date of Birth  (NEW)
- * - Column F: City           (NEW)
- * - Column G: Pin Code       (NEW)
- * - Column H: Preparation For
- * - Column I: XP Points      (Dynamically located by column header search)
+ * - Column C: Email Address
+ * - Column D: Phone Number
+ * - Column E: Date of Birth
+ * - Column F: Father's / Guardian's Name
+ * - Column G: Father's / Guardian's Contact Number
+ * - Column H: City
+ * - Column I: Institute Name
+ * - Column J: Pin Code
+ * - Column K: Preparation For
+ * - Column L: If Any Referral
+ * - Column M: XP Point
+ * - Column N: Referral XP
  * 
- * Note: The existing verifyLogin and checkRegistration checks use indexes 2 (Email)
- * and 3 (Phone), which remain unchanged as the new fields are appended *after* the phone number.
- * The XP points column is found dynamically, meaning no Apps Script logic shifts are required.
+ * Note: The existing verifyLogin and checkRegistration checks find column indexes dynamically,
+ * which ensures no Apps Script logic shifts are required.
  */
 
 function doGet(e) {
@@ -80,6 +84,7 @@ function verifyLogin(e) {
   var phoneCol = getColumnIndexByName(sheet, 'phone', 4);
   var xpCol    = getXPColumn(sheet);
   var refXpCol = getReferralXPColumn(sheet);
+  var prepCol  = getColumnIndexByName(sheet, 'preparation', 9);
 
   for (var i = 1; i < data.length; i++) {
     var rowEmail = String(data[i][emailCol - 1]).toLowerCase().trim();
@@ -88,7 +93,8 @@ function verifyLogin(e) {
       var xp = parseFloat(data[i][xpCol - 1]) || 0;
       if (xp === 0) { xp = 100; sheet.getRange(i + 1, xpCol).setValue(100); }
       var referralXp = parseFloat(data[i][refXpCol - 1]) || 0;
-      return { success: true, name: String(data[i][nameCol - 1]).trim(), email: email, phone: phone, xp: xp, referralXp: referralXp };
+      var prep = String(data[i][prepCol - 1] || 'Other').trim();
+      return { success: true, name: String(data[i][nameCol - 1]).trim(), email: email, phone: phone, xp: xp, referralXp: referralXp, preparation: prep };
     }
   }
   return { success: false, message: 'Invalid email or mobile number. Please try again.' };
@@ -302,6 +308,8 @@ function saveRegistration(e) {
   var email = (e.parameter.email || '').toLowerCase().trim();
   var phone = (e.parameter.phone || '').trim();
   var dob = (e.parameter.dob || '').trim();
+  var guardianName = (e.parameter.guardianName || '').trim();
+  var guardianContact = (e.parameter.guardianContact || '').trim();
   var city = (e.parameter.city || '').trim();
   var instituteName = (e.parameter.instituteName || '').trim();
   var pinCode = (e.parameter.pinCode || '').trim();
@@ -348,13 +356,15 @@ function saveRegistration(e) {
     }
   }
   
-  // Header order: Timestamp, Full Name, Email Address, Phone Number, Date of Birth, City, Institute Name, Pin Code, Preparation For, If Any Referral, XP Point, Referral XP
+  // Header order: Timestamp, Full Name, Email Address, Phone Number, Date of Birth, Father's / Guardian's Name, Father's / Guardian's Contact Number, City, Institute Name, Pin Code, Preparation For, If Any Referral, XP Point, Referral XP
   var headers = [
     'Timestamp',
     'Full Name',
     'Email Address',
     'Phone Number',
     'Date of Birth',
+    "Father's / Guardian's Name",
+    "Father's / Guardian's Contact Number",
     'City',
     'Institute Name',
     'Pin Code',
@@ -397,6 +407,8 @@ function saveRegistration(e) {
     email,
     phone,
     dob,
+    guardianName,
+    guardianContact,
     city,
     instituteName,
     pinCode,

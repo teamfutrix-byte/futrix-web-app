@@ -1330,6 +1330,22 @@
                 <div class="field-error">Please enter your date of birth</div>
               </div>
 
+              <!-- Father's / Guardian's Name -->
+              <div class="field" id="fieldGuardianName">
+                <input type="text" id="guardianName" name="guardianName" placeholder="e.g. Sunil Kumar" />
+                <label for="guardianName">Father's / Guardian's Name</label>
+                <div class="field-line"></div>
+                <div class="field-error">Please enter Father's / Guardian's Name</div>
+              </div>
+
+              <!-- Father's / Guardian's Contact Number -->
+              <div class="field" id="fieldGuardianContact">
+                <input type="tel" id="guardianContact" name="guardianContact" placeholder="e.g. 9876543210" maxlength="15" />
+                <label for="guardianContact">Father's / Guardian's Contact Number</label>
+                <div class="field-line"></div>
+                <div class="field-error">Please enter a valid Father's / Guardian's Contact Number</div>
+              </div>
+
               <!-- City -->
               <div class="field" id="fieldCity">
                 <input type="text" id="city" name="city" placeholder="e.g. New Delhi" autocomplete="address-level2" />
@@ -1358,20 +1374,8 @@
             <!-- Preparation For -->
             <p class="prep-label">Preparation For</p>
             <div class="prep-grid" id="prepGrid" role="group" aria-label="Select exam preparation">
-              <button type="button" class="prep-btn" data-exam="UPSC">UPSC</button>
-              <button type="button" class="prep-btn" data-exam="SSC">SSC</button>
               <button type="button" class="prep-btn" data-exam="NEET">NEET</button>
               <button type="button" class="prep-btn" data-exam="JEE">JEE</button>
-              <button type="button" class="prep-btn" data-exam="Banking">Banking</button>
-              <button type="button" class="prep-btn" data-exam="Other">Other</button>
-            </div>
-
-            <!-- Other — Custom Exam Input -->
-            <div class="other-input-wrap" id="otherInputWrap">
-              <div class="other-exam-field">
-                <input type="text" id="otherExamInput" placeholder="✏️ Type your exam name (e.g. GATE, CA, CDS...)"
-                  maxlength="60" autocomplete="off" />
-              </div>
             </div>
 
             <div class="field-group" style="margin-top: 1.5rem;">
@@ -1573,35 +1577,14 @@
 
     // ── Prep Buttons Selection
     let selectedExam = '';
-    const otherWrap = document.getElementById('otherInputWrap');
-    const otherInput = document.getElementById('otherExamInput');
 
     document.querySelectorAll('.prep-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.prep-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
-
-        if (btn.dataset.exam === 'Other') {
-          // Show custom input
-          otherWrap.classList.add('show');
-          setTimeout(() => otherInput.focus(), 320);
-          // Value will be read from otherInput on submit
-          selectedExam = 'Other';
-          document.getElementById('selectedExam').value = 'Other';
-        } else {
-          // Hide & clear custom input
-          otherWrap.classList.remove('show');
-          otherInput.value = '';
-          selectedExam = btn.dataset.exam;
-          document.getElementById('selectedExam').value = selectedExam;
-        }
+        selectedExam = btn.dataset.exam;
+        document.getElementById('selectedExam').value = selectedExam;
       });
-    });
-
-    // Keep selectedExam in sync as user types in Other field
-    otherInput.addEventListener('input', () => {
-      selectedExam = otherInput.value.trim() || 'Other';
-      document.getElementById('selectedExam').value = selectedExam;
     });
 
     // ── Toast
@@ -1622,17 +1605,21 @@
       const emailField = document.getElementById('fieldEmail');
       const phoneField = document.getElementById('fieldPhone');
       const dobField = document.getElementById('fieldDOB');
+      const guardianNameField = document.getElementById('fieldGuardianName');
+      const guardianContactField = document.getElementById('fieldGuardianContact');
       const cityField = document.getElementById('fieldCity');
       const instituteField = document.getElementById('fieldInstitute');
       const pinCodeField = document.getElementById('fieldPinCode');
 
       const dobVal = document.getElementById('dob').value;
+      const guardianNameVal = document.getElementById('guardianName').value;
+      const guardianContactVal = document.getElementById('guardianContact').value;
       const cityVal = document.getElementById('city').value;
       const instituteVal = document.getElementById('instituteName').value;
       const pinCodeVal = document.getElementById('pinCode').value;
 
       // Reset
-      [nameField, emailField, phoneField, dobField, cityField, instituteField, pinCodeField].forEach(f => {
+      [nameField, emailField, phoneField, dobField, guardianNameField, guardianContactField, cityField, instituteField, pinCodeField].forEach(f => {
         if (f) f.classList.remove('error');
       });
 
@@ -1647,6 +1634,12 @@
       }
       if (!dobVal.trim()) {
         dobField.classList.add('error'); valid = false;
+      }
+      if (!guardianNameVal.trim() || guardianNameVal.trim().length < 2) {
+        guardianNameField.classList.add('error'); valid = false;
+      }
+      if (!guardianContactVal.trim() || !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(guardianContactVal.trim())) {
+        guardianContactField.classList.add('error'); valid = false;
       }
       if (!cityVal.trim() || cityVal.trim().length < 2) {
         cityField.classList.add('error'); valid = false;
@@ -1712,11 +1705,11 @@
       spinner.style.display = 'block';
 
       try {
-        const isOther = document.querySelector('.prep-btn[data-exam="Other"]')?.classList.contains('selected');
-        const customExam = document.getElementById('otherExamInput').value.trim();
-        const prepValue = isOther && customExam ? customExam : selectedExam;
+        const prepValue = selectedExam;
 
         const dobVal = document.getElementById('dob').value.trim();
+        const guardianNameVal = document.getElementById('guardianName').value.trim();
+        const guardianContactVal = document.getElementById('guardianContact').value.trim();
         const cityVal = document.getElementById('city').value.trim();
         const instituteNameVal = document.getElementById('instituteName').value.trim();
         const pinCodeVal = document.getElementById('pinCode').value.trim();
@@ -1729,6 +1722,8 @@
           email: email.trim(),
           phone: phone.trim(),
           dob: dobVal,
+          guardianName: guardianNameVal,
+          guardianContact: guardianContactVal,
           city: cityVal,
           instituteName: instituteNameVal,
           pinCode: pinCodeVal,

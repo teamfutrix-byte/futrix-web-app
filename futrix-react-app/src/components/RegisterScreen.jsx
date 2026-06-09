@@ -13,6 +13,8 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
   const [city, setCity] = useState('');
   const [instituteName, setInstituteName] = useState('');
   const [pinCode, setPinCode] = useState('');
+  const [guardianName, setGuardianName] = useState('');
+  const [guardianContact, setGuardianContact] = useState('');
   const [selectedExam, setSelectedExam] = useState('');
   const [otherExam, setOtherExam] = useState('');
   const [referral, setReferral] = useState('');
@@ -23,6 +25,8 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
     email: false,
     phone: false,
     dob: false,
+    guardianName: false,
+    guardianContact: false,
     city: false,
     institute: false,
     pinCode: false
@@ -70,6 +74,8 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
       email: false,
       phone: false,
       dob: false,
+      guardianName: false,
+      guardianContact: false,
       city: false,
       institute: false,
       pinCode: false
@@ -89,6 +95,14 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
     }
     if (!dob.trim()) {
       newErrors.dob = true;
+      valid = false;
+    }
+    if (!guardianName.trim() || guardianName.trim().length < 2) {
+      newErrors.guardianName = true;
+      valid = false;
+    }
+    if (!guardianContact.trim() || !/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(guardianContact.trim())) {
+      newErrors.guardianContact = true;
       valid = false;
     }
     if (!city.trim() || city.trim().length < 2) {
@@ -116,9 +130,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
     setIsLoading(true);
 
     try {
-      const isOther = selectedExam === 'Other';
-      const customExamValue = otherExam.trim();
-      const prepValue = isOther && customExamValue ? customExamValue : selectedExam;
+      const prepValue = selectedExam;
 
       // Submit registration details directly to Apps Script
       const regParams = {
@@ -127,6 +139,8 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
         email: email.trim(),
         phone: phone.trim(),
         dob: dob.trim(),
+        guardianName: guardianName.trim(),
+        guardianContact: guardianContact.trim(),
         city: city.trim(),
         instituteName: instituteName.trim(),
         pinCode: pinCode.trim(),
@@ -247,6 +261,35 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
                       <div className="field-error">Please enter your date of birth</div>
                     </div>
 
+                    {/* Father's / Guardian's Name */}
+                    <div className={`field ${errors.guardianName ? 'error' : ''}`}>
+                      <input 
+                        type="text" 
+                        id="guardianName" 
+                        value={guardianName}
+                        onChange={(e) => { setGuardianName(e.target.value); setErrors(prev => ({ ...prev, guardianName: false })); }}
+                        placeholder="e.g. Sunil Kumar" 
+                      />
+                      <label htmlFor="guardianName">Father's / Guardian's Name</label>
+                      <div className="field-line"></div>
+                      <div className="field-error">Please enter Father's / Guardian's Name</div>
+                    </div>
+
+                    {/* Father's / Guardian's Contact Number */}
+                    <div className={`field ${errors.guardianContact ? 'error' : ''}`}>
+                      <input 
+                        type="tel" 
+                        id="guardianContact" 
+                        value={guardianContact}
+                        onChange={(e) => { setGuardianContact(e.target.value.replace(/[^0-9+\-\s()]/g, '')); setErrors(prev => ({ ...prev, guardianContact: false })); }}
+                        placeholder="e.g. 9876543210"
+                        maxLength="15" 
+                      />
+                      <label htmlFor="guardianContact">Father's / Guardian's Contact Number</label>
+                      <div className="field-line"></div>
+                      <div className="field-error">Please enter a valid Father's / Guardian's Contact Number</div>
+                    </div>
+
                     {/* City */}
                     <div className={`field ${errors.city ? 'error' : ''}`}>
                       <input 
@@ -298,7 +341,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
 
                   <p className="prep-label">Preparation For</p>
                   <div className="prep-grid" role="group" aria-label="Select exam preparation">
-                    {['UPSC', 'SSC', 'NEET', 'JEE', 'Banking', 'Other'].map(examName => (
+                    {['NEET', 'JEE'].map(examName => (
                       <button
                         key={examName}
                         type="button"
@@ -308,20 +351,6 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
                         {examName}
                       </button>
                     ))}
-                  </div>
-
-                  {/* Other input option */}
-                  <div className={`other-input-wrap ${selectedExam === 'Other' ? 'show' : ''}`}>
-                    <div className="other-exam-field">
-                      <input 
-                        type="text" 
-                        value={otherExam}
-                        onChange={(e) => setOtherExam(e.target.value)}
-                        placeholder="✏️ Type your exam name (e.g. GATE, CA, CDS...)" 
-                        maxLength="60" 
-                        autoComplete="off" 
-                      />
-                    </div>
                   </div>
 
                   <div className="field-group" style={{ marginTop: '1.5rem' }}>

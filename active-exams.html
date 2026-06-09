@@ -1,0 +1,2133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Active Challenges & Exams | Futrix Pilot</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0b0e14;
+      --sidebar-bg: #090b0f;
+      --surface:    #121620;
+      --surface-hi: #1a1f2c;
+      --border:     rgba(255,255,255,0.06);
+      --primary:    #adc6ff;
+      --primary-btn:#4d8eff;
+      --text:       #e1e2ec;
+      --text-muted: #8c909f;
+      --accent:     #ffa94d;
+      --teal:       #00e5d4;
+      --danger:     #ff5252;
+      --success:    #00e676;
+      
+      --purple:     #a78bfa;
+      --rose:       #fb7185;
+      --yellow:     #fcd34d;
+    }
+
+    html, body { 
+      height: 100%; 
+      font-family: 'Geist','Sora',sans-serif; 
+      background: var(--bg); 
+      color: var(--text); 
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* ══════════════ TOP BAR ══════════════ */
+    .topbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 56px;
+      background: rgba(9,11,15,0.95);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      z-index: 200;
+    }
+    .topbar-logo {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 1.4rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .topbar-logo span {
+      color: var(--primary-btn);
+    }
+    
+    .topbar-nav {
+      display: none;
+      list-style: none;
+      align-items: center;
+      gap: 1.5rem;
+      margin-left: 2.5rem;
+      flex: 1;
+    }
+    @media(min-width: 900px) {
+      .topbar-nav {
+        display: flex;
+      }
+    }
+    .topbar-nav li a {
+      font-family: 'Sora', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+      position: relative;
+      padding: 0.4rem 0;
+      transition: color 0.2s;
+    }
+    .topbar-nav li a:hover {
+      color: var(--text);
+    }
+    .topbar-nav li a.active {
+      color: var(--text);
+    }
+    .topbar-nav li a.active::after {
+      content: '';
+      position: absolute;
+      bottom: -15px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--primary-btn);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .timer-display-top {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.03);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .timer-display-top svg {
+      color: var(--primary-btn);
+    }
+    .user-avatar-btn {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--surface-hi);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--text);
+      transition: background 0.2s;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+    .user-avatar-btn:hover { background: #2a3045; }
+
+    /* ══════════════ LAYOUT ══════════════ */
+    .layout {
+      display: flex;
+      height: 100vh;
+      padding-top: 56px;
+    }
+
+    /* ══════════════ SIDEBAR ══════════════ */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 1.2rem 0;
+      position: fixed;
+      top: 56px;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    /* Profile section */
+    .sidebar-profile {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 1.2rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0.8rem;
+    }
+    .profile-avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary-btn), var(--teal));
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .profile-info { overflow: hidden; }
+    .profile-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .profile-level {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 0.1rem;
+    }
+
+    /* Nav items */
+    .nav-list {
+      flex: 1;
+      list-style: none;
+      padding: 0 0.6rem;
+    }
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.7rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.15s ease;
+      margin-bottom: 0.2rem;
+      position: relative;
+    }
+    .nav-item a:hover {
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+    }
+    .nav-item a.active {
+      background: rgba(77,142,255,0.1);
+      color: var(--primary);
+      border: 1px solid rgba(77,142,255,0.15);
+      font-weight: 600;
+    }
+    .nav-item a.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 20%;
+      bottom: 20%;
+      width: 3px;
+      background: var(--primary-btn);
+      border-radius: 0 4px 4px 0;
+    }
+    .nav-item a svg { flex-shrink: 0; }
+
+    /* Sidebar bottom upgrade card */
+    .sidebar-bottom {
+      padding: 0.8rem;
+      border-top: 1px solid var(--border);
+    }
+    .upgrade-card {
+      background: rgba(18,22,32,0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.9rem;
+      margin-bottom: 0.8rem;
+      text-align: left;
+    }
+    .upgrade-title {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+    .btn-upgrade {
+      width: 100%;
+      padding: 0.55rem;
+      border-radius: 8px;
+      border: none;
+      background: var(--primary-btn);
+      color: #fff;
+      font-family: 'Geist', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-upgrade:hover { background: #3b76e0; transform: translateY(-1px); }
+
+    .bottom-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+    .bottom-links li a {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0.6rem;
+      border-radius: 7px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .bottom-links li a:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+
+    /* ══════════════ MAIN CONTENT ══════════════ */
+    .main-content {
+      margin-left: 220px;
+      flex: 1;
+      padding: 1.8rem;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.8rem;
+      align-items: flex-start;
+    }
+    @media(min-width: 1100px) {
+      .main-content {
+        grid-template-columns: 1fr 300px;
+      }
+    }
+
+    /* ── LEFT: Main Challenges Portal ── */
+    .challenges-portal {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .portal-header {
+      margin-bottom: 0.5rem;
+    }
+    .portal-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .portal-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.9rem;
+    }
+    @media(min-width: 600px) {
+      .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+    .stat-card {
+      background: rgba(18,22,32,0.4);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 85px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .stat-card:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .stat-card.purple { border-color: rgba(167, 139, 250, 0.25); }
+    .stat-card.orange { border-color: rgba(255, 169, 77, 0.25); }
+    .stat-card.blue   { border-color: rgba(77, 142, 255, 0.25); }
+    .stat-card.rose   { border-color: rgba(251, 113, 133, 0.25); }
+
+    .stat-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .stat-value {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .stat-card.purple .stat-value { color: var(--purple); }
+    .stat-card.orange .stat-value { color: var(--accent); }
+    .stat-card.blue .stat-value   { color: var(--primary); }
+    .stat-card.rose .stat-value   { color: var(--rose); }
+
+    /* Challenge Of The Day */
+    .cotd-card {
+      background: radial-gradient(circle at 10% 20%, rgba(77, 142, 255, 0.08) 0%, rgba(18, 22, 32, 0.8) 80%);
+      border: 1px solid rgba(77, 142, 255, 0.15);
+      border-radius: 16px;
+      padding: 1.6rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    @media(min-width: 650px) {
+      .cotd-card {
+        grid-template-columns: 1fr 200px;
+      }
+    }
+    .cotd-card::before {
+      content: '';
+      position: absolute;
+      top: -20%; right: -10%;
+      width: 180px; height: 180px;
+      background: radial-gradient(circle, rgba(77, 142, 255, 0.08), transparent 70%);
+      filter: blur(20px);
+      pointer-events: none;
+    }
+    
+    .cotd-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 0.8rem;
+    }
+    .cotd-xp-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(77, 142, 255, 0.15);
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid rgba(77, 142, 255, 0.2);
+    }
+    .cotd-timer {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .cotd-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 750;
+      line-height: 1.3;
+      margin-bottom: 0.9rem;
+      color: var(--text);
+    }
+    .cotd-details-row {
+      display: flex;
+      gap: 1.2rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 1.4rem;
+    }
+    .cotd-detail {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .cotd-detail svg {
+      color: var(--primary);
+    }
+    .btn-cotd {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, var(--primary-btn), #6fa3ff);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'Sora', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(77, 142, 255, 0.25);
+      transition: all 0.2s;
+    }
+    .btn-cotd:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(77, 142, 255, 0.4);
+    }
+    
+    /* Radar animation visual */
+    .radar-visual {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .radar-svg {
+      width: 170px;
+      height: 170px;
+    }
+    .radar-ring.dashed {
+      fill: none;
+      stroke: rgba(77, 142, 255, 0.14);
+      stroke-width: 1.5;
+      stroke-dasharray: 4 4;
+    }
+    .radar-ring.solid {
+      fill: none;
+      stroke: rgba(77, 142, 255, 0.06);
+      stroke-width: 1.5;
+    }
+    .radar-line-grid {
+      stroke: rgba(255, 255, 255, 0.02);
+      stroke-width: 1;
+      stroke-dasharray: 2 4;
+    }
+    .radar-sweep {
+      stroke: var(--primary-btn);
+      stroke-width: 1.5;
+      opacity: 0.8;
+      transform-origin: 100px 100px;
+      animation: radar-sweep-anim 6s linear infinite;
+    }
+    @keyframes radar-sweep-anim {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .radar-blip {
+      fill: var(--teal);
+      stroke: rgba(0, 229, 212, 0.3);
+      stroke-width: 5;
+      animation: radar-blip-pulse 2.5s infinite ease-in-out;
+    }
+    .blip-2 {
+      fill: var(--accent);
+      stroke: rgba(255, 169, 77, 0.3);
+      animation-delay: 1.2s;
+    }
+    @keyframes radar-blip-pulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+
+    /* Filter Tabs */
+    .filter-tabs-wrap {
+      overflow-x: auto;
+      padding-bottom: 0.3rem;
+      margin: 0.5rem 0;
+      scrollbar-width: none; /* Hide scrollbar for Firefox */
+    }
+    .filter-tabs-wrap::-webkit-scrollbar {
+      display: none; /* Hide scrollbar for Chrome/Safari */
+    }
+    .tabs-list {
+      display: flex;
+      gap: 0.5rem;
+      list-style: none;
+      white-space: nowrap;
+    }
+    .tab-btn {
+      padding: 0.45rem 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      font-family: 'Geist', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      color: var(--text);
+    }
+    .tab-btn.active {
+      background: var(--primary-btn);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 2px 10px rgba(77, 142, 255, 0.2);
+    }
+
+    /* Challenges Grid */
+    .challenges-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+    }
+    @media(min-width: 768px) {
+      .challenges-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    .challenge-card {
+      background: rgba(18,22,32,0.4);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.3rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 250px;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+    .challenge-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,0.1);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+    }
+    .card-top {
+      margin-bottom: 1.2rem;
+    }
+    .card-badge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.8rem;
+    }
+    .card-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+    .badge-daily {
+      background: rgba(173, 198, 255, 0.1);
+      color: var(--primary);
+    }
+    .badge-arena {
+      background: rgba(255, 169, 77, 0.1);
+      color: var(--accent);
+    }
+    .badge-special {
+      background: rgba(167, 139, 250, 0.1);
+      color: var(--purple);
+    }
+    .card-badge-status {
+      font-size: 0.72rem;
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .card-status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+    .dot-orange {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .dot-purple {
+      background: var(--purple);
+      box-shadow: 0 0 8px var(--purple);
+    }
+    .card-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.35;
+      margin-bottom: 0.4rem;
+    }
+    .card-subtitle {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .card-meta-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      padding-top: 0.8rem;
+      margin-top: 0.8rem;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .meta-item svg {
+      color: var(--primary);
+      opacity: 0.8;
+    }
+    .meta-item strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+    
+    .btn-start-card {
+      width: 100%;
+      margin-top: 1.2rem;
+      padding: 0.65rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      transition: all 0.2s;
+    }
+    .btn-start-card:hover {
+      background: rgba(77, 142, 255, 0.1);
+      border-color: var(--primary-btn);
+      color: var(--primary);
+    }
+
+    /* ── RIGHT: Sidebar Panels ── */
+    .right-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1.4rem;
+      width: 100%;
+    }
+
+    .sidebar-panel {
+      background: rgba(18,22,32,0.4);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.2rem;
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-family: 'Sora', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      padding-bottom: 0.6rem;
+    }
+    .panel-header svg {
+      color: var(--primary-btn);
+    }
+
+    /* Upcoming Challenge Card */
+    .upcoming-inner {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.03);
+      border-radius: 10px;
+      padding: 0.9rem;
+    }
+    .upcoming-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+    }
+    .upcoming-time {
+      font-size: 0.78rem;
+      color: var(--accent);
+      margin-bottom: 0.8rem;
+      font-weight: 500;
+    }
+    .upcoming-faces-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .faces-stack {
+      display: flex;
+      align-items: center;
+    }
+    .face-avatar {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 1.5px solid var(--surface);
+      background: var(--surface-hi);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem;
+      font-weight: 700;
+      margin-right: -8px;
+    }
+    .faces-text {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* Top Performers Today */
+    .performers-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .performer-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.82rem;
+    }
+    .performer-left {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .performer-rank {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      width: 14px;
+      color: var(--text-muted);
+    }
+    .performer-item:nth-of-type(1) .performer-rank { color: var(--accent); }
+    .performer-item:nth-of-type(2) .performer-rank { color: var(--primary); }
+    .performer-item:nth-of-type(3) .performer-rank { color: var(--purple); }
+    
+    .performer-avatar {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: #1f2535;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+    }
+    .performer-item:nth-of-type(1) .performer-avatar {
+      background: linear-gradient(135deg, #ffa94d, #ff7c00);
+      color: #fff;
+    }
+    .performer-name {
+      font-weight: 500;
+      color: var(--text);
+    }
+    .performer-xp {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Daily Mission Progress */
+    .mission-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      margin-bottom: 0.6rem;
+    }
+    .mission-pct {
+      color: var(--primary-btn);
+      font-weight: 600;
+    }
+    .mission-xp-bonus {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--success);
+      background: rgba(0, 230, 118, 0.08);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+    }
+    .mission-bar {
+      height: 6px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 0.7rem;
+    }
+    .mission-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-btn), var(--teal));
+      width: 50%;
+      border-radius: 3px;
+    }
+    .mission-footer {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Your Progress Today */
+    .progress-center-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem 0;
+    }
+    .progress-ring-container {
+      position: relative;
+      width: 120px; height: 120px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 0.8rem;
+    }
+    .progress-ring-svg {
+      width: 120px; height: 120px;
+    }
+    .progress-ring-bg {
+      fill: none;
+      stroke: rgba(255,255,255,0.03);
+      stroke-width: 7;
+    }
+    .progress-ring-fill {
+      fill: none;
+      stroke: url(#progressGradRight);
+      stroke-width: 7;
+      stroke-linecap: round;
+      stroke-dasharray: 301.6;
+      stroke-dashoffset: 60.3; /* 80% progress */
+      transform: rotate(-90deg);
+      transform-origin: 60px 60px;
+    }
+    .progress-ring-text {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .progress-ring-val {
+      font-family: 'Sora', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .progress-ring-lbl {
+      font-size: 0.55rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .progress-desc-row {
+      text-align: center;
+      font-size: 0.82rem;
+    }
+    .progress-desc-xp {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.2rem;
+    }
+    .progress-desc-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* ══════════════ SIDEBAR TOGGLE (mobile) ══════════════ */
+    .sidebar-toggle {
+      display: none;
+      position: fixed;
+      top: 60px;
+      left: 1rem;
+      z-index: 300;
+      background: var(--surface-hi);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.4rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-toggle { display: flex; }
+      .sidebar-overlay.open { display: block; }
+      .main-content { margin-left: 0; padding: 1.2rem; }
+    }
+    @keyframes slideDownFade {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div style="display: flex; align-items: center;">
+      <a href="#" class="topbar-logo">Fut<span>rix</span></a>
+      <ul class="topbar-nav">
+        <li><a href="instruction.html">Dashboard</a></li>
+        <li><a href="active-exams.html" class="active">Active Exams</a></li>
+        <li><a href="#">Performance</a></li>
+        <li><a href="#">Leaderboard</a></li>
+      </ul>
+    </div>
+    <div class="topbar-right">
+      <div class="timer-display-top">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span id="timerDisplay">00:00:00</span>
+      </div>
+      <div class="user-avatar-btn" id="topUserBtn">FP</div>
+    </div>
+  </header>
+
+  <!-- Sidebar Toggle (mobile) -->
+  <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <!-- Profile block -->
+      <div class="sidebar-profile">
+        <div class="profile-avatar" id="profileInitial">FP</div>
+        <div class="profile-info">
+          <div class="profile-name" id="profileName">Futrix Pilot</div>
+          <div class="profile-level">XP: <span id="sidebarXP">12,400</span></div>
+        </div>
+      </div>
+
+      <!-- Navigation links -->
+      <ul class="nav-list">
+        <li class="nav-item">
+          <a href="instruction.html">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="active-exams.html" class="active">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Active Exams
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Performance
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Leaderboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            Settings
+          </a>
+        </li>
+      </ul>
+
+      <!-- Pro Upgrade + bottom links -->
+      <div class="sidebar-bottom">
+        <div class="upgrade-card">
+          <div class="upgrade-title">Maximize your gains</div>
+          <button class="btn-upgrade" onclick="alert('Upgrade to Pro features coming soon!')">Upgrade to Pro</button>
+        </div>
+        <ul class="bottom-links">
+          <li><a href="#">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Help
+          </a></li>
+          <li><a href="login.html" id="logoutBtn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Logout
+          </a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Section -->
+    <main class="main-content">
+      
+      <!-- LEFT Column: Challenges Portal -->
+      <section class="challenges-portal">
+        <div class="portal-header">
+          <h1 class="portal-title">🔥 Active Challenges & Exams</h1>
+          <p class="portal-desc">Choose an active challenge, earn XP, improve your rank, and climb the FUTRIX leaderboard.</p>
+        </div>
+
+        <!-- Announcement / Beta Notice Banner -->
+        <div class="announcement-banner" id="testingNoticeBanner" style="
+          background: linear-gradient(135deg, rgba(255, 169, 77, 0.08) 0%, rgba(18, 22, 32, 0.9) 100%);
+          border: 1px solid rgba(255, 169, 77, 0.25);
+          border-radius: 12px;
+          padding: 1rem 1.2rem;
+          margin-bottom: 1.2rem;
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 1rem;
+          position: relative;
+          backdrop-filter: blur(10px);
+          animation: slideDownFade 0.45s ease;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        ">
+          <div style="display: flex; gap: 0.8rem; align-items: flex-start;">
+            <span style="font-size: 1.3rem; margin-top: 0.15rem; filter: drop-shadow(0 0 5px var(--accent));">📢</span>
+            <div>
+              <h4 style="font-family: 'Sora', sans-serif; font-size: 0.92rem; font-weight: 700; color: var(--text); margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.4rem;">
+                System Update: Pilot Testing Phase Active
+                <span style="font-size: 0.65rem; font-weight: 700; color: #fff; background: var(--accent); padding: 0.15rem 0.45rem; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; line-height: 1;">Beta</span>
+              </h4>
+              <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; font-weight: 500;">
+                All features, test series, and dashboard battles are currently in their pilot testing phase. Live examinations and XP-reward prize pools will launch shortly. Stay tuned, Pilot!
+              </p>
+            </div>
+          </div>
+          <button id="btnCloseNotice" style="
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.1rem;
+            line-height: 1;
+            transition: color 0.2s;
+            margin-top: -0.25rem;
+          " onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">×</button>
+        </div>
+
+        <!-- Row of 4 Stat Cards -->
+        <div class="stats-grid">
+          <div class="stat-card purple">
+            <span class="stat-label">Available Exams</span>
+            <span class="stat-value">12</span>
+          </div>
+          <div class="stat-card orange">
+            <span class="stat-label">Available XP</span>
+            <span class="stat-value" id="displayAvailableXP">780 XP</span>
+          </div>
+          <div class="stat-card blue">
+            <span class="stat-label">Current Rank</span>
+            <span class="stat-value" id="displayRank">S Rank</span>
+          </div>
+          <div class="stat-card rose">
+            <span class="stat-label">7 Day Streak</span>
+            <span class="stat-value">7 Days</span>
+          </div>
+        </div>
+
+        <!-- Challenge of the Day -->
+        <div class="cotd-card">
+          <div>
+            <div class="cotd-meta">
+              <span class="cotd-xp-badge">+100 XP</span>
+              <div class="cotd-timer">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span id="cotdCountdown">05h 21m 45s</span>
+              </div>
+            </div>
+            <h2 class="cotd-title">🏆 Challenge Of The Day:<br>FUTRIX Elite Battle Arena</h2>
+            <div class="cotd-details-row">
+              <div class="cotd-detail">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>1,243 Students</span>
+              </div>
+              <div class="cotd-detail">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span>Level 40+ Recommended</span>
+              </div>
+            </div>
+            <button class="btn-cotd" onclick="window.location.href='instruction.html'">
+              🚀 Enter Battle Arena ⚡
+            </button>
+          </div>
+
+          <!-- Radar Visual Animation -->
+          <div class="radar-visual">
+            <svg class="radar-svg" width="200" height="200" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="80" class="radar-ring dashed" />
+              <circle cx="100" cy="100" r="55" class="radar-ring dashed" />
+              <circle cx="100" cy="100" r="30" class="radar-ring solid" />
+              <line x1="100" y1="20" x2="100" y2="180" class="radar-line-grid" />
+              <line x1="20" y1="100" x2="180" y2="100" class="radar-line-grid" />
+              <!-- Scanning sweep line -->
+              <line x1="100" y1="100" x2="100" y2="20" class="radar-sweep" />
+              <!-- Radar dots / targets -->
+              <circle cx="70" cy="80" r="4.5" class="radar-blip" />
+              <circle cx="130" cy="120" r="3.5" class="radar-blip blip-2" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container" id="examsSearchContainer" style="margin-bottom: 1.2rem; position: relative;">
+          <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1.1rem; pointer-events: none;">🔍</span>
+          <input type="text" id="examSearchInput" placeholder="Search your exam center (e.g. NEET, JEE, SSC, UPSC, Banking, GATE...)" style="
+            width: 100%;
+            padding: 0.85rem 1rem 0.85rem 2.8rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: rgba(18, 22, 32, 0.6);
+            color: var(--text);
+            font-family: 'Geist', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
+            outline: none;
+          " onfocus="this.style.borderColor='var(--primary-btn)'; this.style.boxShadow='0 0 10px rgba(77, 142, 255, 0.15)';" onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none';" />
+          <button id="btnClearSearch" style="
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: none;
+            transition: color 0.2s;
+          " onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">×</button>
+        </div>
+
+        <!-- First View: Grid of Exam Category Centers -->
+        <div id="examsListView" class="challenges-grid">
+          
+          <!-- Card 1: NEET -->
+          <div class="challenge-card exam-category-card" data-exam-id="NEET">
+            <div class="card-top">
+              <div class="card-badge-row">
+                <span class="card-badge badge-special" style="background: rgba(167, 139, 250, 0.1); color: var(--purple);">NEET Stream</span>
+                <span class="card-badge-status" id="main-status-NEET">
+                  <span class="card-status-dot"></span>
+                  Active Now
+                </span>
+              </div>
+              <h3 class="card-title">NEET Test Center</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.4rem;">
+                Biology, Chemistry & Physics mock exams, topic practices and subject boosters.
+              </p>
+            </div>
+            <div>
+              <div class="card-meta-list">
+                <div class="meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                  <span><strong>4</strong> Active Tests</span>
+                </div>
+                <div class="meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                  <span>3 Tests Coming Soon</span>
+                </div>
+              </div>
+              <button class="btn-start-card btn-open-exam" data-exam-id="NEET">Open NEET Center →</button>
+            </div>
+          </div>
+
+          <!-- Card 2: JEE -->
+          <div class="challenge-card exam-category-card" data-exam-id="JEE">
+            <div class="card-top">
+              <div class="card-badge-row">
+                <span class="card-badge badge-daily">JEE Stream</span>
+                <span class="card-badge-status" id="main-status-JEE">
+                  <span class="card-status-dot"></span>
+                  Active Now
+                </span>
+              </div>
+              <h3 class="card-title">JEE Test Center</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.4rem;">
+                Advanced Mathematics, Rotational Mechanics, physics drills and Mains level full syllabus exams.
+              </p>
+            </div>
+            <div>
+              <div class="card-meta-list">
+                <div class="meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                  <span><strong>4</strong> Active Tests</span>
+                </div>
+                <div class="meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                  <span>2 Tests Coming Soon</span>
+                </div>
+              </div>
+              <button class="btn-start-card btn-open-exam" data-exam-id="JEE">Open JEE Center →</button>
+            </div>
+          </div>
+
+          <!-- Card 3: SSC -->
+          <div class="challenge-card exam-category-card" data-exam-id="SSC">
+            <div class="card-top">
+              <div class="card-badge-row">
+                <span class="card-badge badge-arena" style="background: rgba(255, 169, 77, 0.1); color: var(--accent);">SSC Stream</span>
+                <span class="card-badge-status" id="main-status-SSC">
+                  <span class="card-status-dot"></span>
+                  Active Now
+                </span>
+              </div>
+              <h3 class="card-title">SSC CGL Test Center</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.4rem;">
+                Quantitative Aptitude, General English Vocabulary, Reasoning speed runs, General Awareness.
+              </p>
+            </div>
+            <div>
+              <div class="card-meta-list">
+                <div class="meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                  <span><strong>3</strong> Active Tests</span>
+                </div>
+                <div class="meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                  <span>2 Tests Coming Soon</span>
+                </div>
+              </div>
+              <button class="btn-start-card btn-open-exam" data-exam-id="SSC">Open SSC Center →</button>
+            </div>
+          </div>
+
+          <!-- Card 4: UPSC -->
+          <div class="challenge-card exam-category-card" data-exam-id="UPSC">
+            <div class="card-top">
+              <div class="card-badge-row">
+                <span class="card-badge badge-special">UPSC Stream</span>
+                <span class="card-badge-status" id="main-status-UPSC">
+                  <span class="card-status-dot"></span>
+                  Active Now
+                </span>
+              </div>
+              <h3 class="card-title">UPSC IAS Test Center</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.4rem;">
+                GS Paper 1 drills, Indian Polity & Constitution, Modern Indian History, CSAT analytical reasoning.
+              </p>
+            </div>
+            <div>
+              <div class="card-meta-list">
+                <div class="meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                  <span><strong>3</strong> Active Tests</span>
+                </div>
+                <div class="meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                  <span>2 Tests Coming Soon</span>
+                </div>
+              </div>
+              <button class="btn-start-card btn-open-exam" data-exam-id="UPSC">Open UPSC Center →</button>
+            </div>
+          </div>
+
+          <!-- Card 5: Banking -->
+          <div class="challenge-card exam-category-card" data-exam-id="BANKING">
+            <div class="card-top">
+              <div class="card-badge-row">
+                <span class="card-badge badge-special" style="background: rgba(0, 229, 212, 0.1); color: var(--teal);">Banking Stream</span>
+                <span class="card-badge-status" id="main-status-BANKING">
+                  <span class="card-status-dot"></span>
+                  Active Now
+                </span>
+              </div>
+              <h3 class="card-title">Banking PO Test Center</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.4rem;">
+                Data Interpretation PO mock, high-speed Reasoning puzzles, PO level quantitative drills.
+              </p>
+            </div>
+            <div>
+              <div class="card-meta-list">
+                <div class="meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                  <span><strong>3</strong> Active Tests</span>
+                </div>
+                <div class="meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                  <span>2 Tests Coming Soon</span>
+                </div>
+              </div>
+              <button class="btn-start-card btn-open-exam" data-exam-id="BANKING">Open Banking Center →</button>
+            </div>
+          </div>
+
+          <!-- Card 6: Other -->
+          <div class="challenge-card exam-category-card" data-exam-id="OTHER">
+            <div class="card-top">
+              <div class="card-badge-row">
+                <span class="card-badge badge-special" style="background: rgba(251, 113, 133, 0.1); color: var(--rose);">General Stream</span>
+                <span class="card-badge-status" id="main-status-OTHER">
+                  <span class="card-status-dot"></span>
+                  Active Now
+                </span>
+              </div>
+              <h3 class="card-title" id="main-title-Other">General Test Center</h3>
+              <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.4rem;">
+                General Mental Ability practice quizzes, basic quantitative aptitude and reasoning test center.
+              </p>
+            </div>
+            <div>
+              <div class="card-meta-list">
+                <div class="meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                  <span><strong>3</strong> Active Tests</span>
+                </div>
+                <div class="meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                  <span>1 Test Coming Soon</span>
+                </div>
+              </div>
+              <button class="btn-start-card btn-open-exam" data-exam-id="OTHER">Open General Center →</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Second View: Sub-view detailing category-wise tests (Initially Hidden) -->
+        <div id="testsDetailView" style="display: none; flex-direction: column; gap: 1.5rem;">
+          
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.8rem; flex-wrap: wrap; gap: 0.8rem;">
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+              <button id="btnBackToExams" style="
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid var(--border);
+                color: var(--text);
+                padding: 0.45rem 0.9rem;
+                border-radius: 8px;
+                cursor: pointer;
+                font-family: 'Sora', sans-serif;
+                font-size: 0.8rem;
+                font-weight: 600;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
+              " onmouseover="this.style.background='rgba(77, 142, 255, 0.08)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.03)'">
+                ← Back to Streams
+              </button>
+              <h2 id="testsDetailTitle" style="font-family: 'Sora', sans-serif; font-size: 1.35rem; font-weight: 750; color: var(--text); line-height: 1.2;">Exam Test Center</h2>
+            </div>
+            <span id="registeredBadge" style="
+              font-size: 0.72rem;
+              font-weight: 700;
+              color: var(--success);
+              background: rgba(0, 230, 118, 0.08);
+              border: 1px solid rgba(0, 230, 118, 0.2);
+              padding: 0.25rem 0.6rem;
+              border-radius: 6px;
+            ">Active Stream</span>
+          </div>
+
+          <div id="lockNotice" style="display: none; background: rgba(255, 169, 77, 0.08); border: 1px solid rgba(255, 169, 77, 0.2); border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.82rem; color: #ffa94d; line-height: 1.5; align-items: center; display: flex; gap: 0.5rem; width: 100%;">
+            <span>⚠️</span>
+            <span>This exam stream is currently locked. Showing preview. All tests inside are <strong>Coming Soon</strong>.</span>
+          </div>
+
+          <!-- Tabs for test types: Topic-wise, Subject-wise, Series-wise, Full Test -->
+          <div class="filter-tabs-wrap">
+            <ul class="tabs-list" id="testTypeTabs">
+              <li><button class="tab-btn active" data-type="all">All Tests</button></li>
+              <li><button class="tab-btn" data-type="topic">Topic-Wise</button></li>
+              <li><button class="tab-btn" data-type="subject">Subject-Wise</button></li>
+              <li><button class="tab-btn" data-type="series">Series-Wise</button></li>
+              <li><button class="tab-btn" data-type="full">Full Mock Tests</button></li>
+            </ul>
+          </div>
+
+          <!-- Dynamic Tests Container -->
+          <div class="challenges-grid" id="testsDynamicGrid">
+            <!-- Populated via Javascript -->
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT Column: Sidebar Panels -->
+      <aside class="right-sidebar">
+        
+        <!-- Panel 1: Upcoming Challenge -->
+        <div class="sidebar-panel">
+          <div class="panel-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Upcoming Challenge
+          </div>
+          <div class="upcoming-inner">
+            <h4 class="upcoming-title">Data Interpretation Pro</h4>
+            <div class="upcoming-time" id="upcomingTimer">Unlocks in 03:45:12</div>
+            <div class="upcoming-faces-row">
+              <div class="faces-stack">
+                <div class="face-avatar" style="background:#ffa94d; color:#121620">A</div>
+                <div class="face-avatar" style="background:#adc6ff; color:#121620">B</div>
+                <div class="face-avatar" style="background:#00e5d4; color:#121620">K</div>
+              </div>
+              <span class="faces-text">85 Interested</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: Top Performers Today -->
+        <div class="sidebar-panel">
+          <div class="panel-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Top Performers Today
+          </div>
+          <div class="performers-list">
+            <div class="performer-item">
+              <div class="performer-left">
+                <span class="performer-rank">1</span>
+                <div class="performer-avatar">🏆</div>
+                <span class="performer-name">Neo_X</span>
+              </div>
+              <span class="performer-xp">1,450 XP</span>
+            </div>
+            <div class="performer-item">
+              <div class="performer-left">
+                <span class="performer-rank">2</span>
+                <div class="performer-avatar" style="background: rgba(173,198,255,0.2); color: var(--primary);">🥈</div>
+                <span class="performer-name">Stellar_01</span>
+              </div>
+              <span class="performer-xp">1,210 XP</span>
+            </div>
+            <div class="performer-item">
+              <div class="performer-left">
+                <span class="performer-rank">3</span>
+                <div class="performer-avatar" style="background: rgba(167,139,250,0.2); color: var(--purple);">🥉</div>
+                <span class="performer-name">Cortex_IA</span>
+              </div>
+              <span class="performer-xp">1,180 XP</span>
+            </div>
+            <div class="performer-item">
+              <div class="performer-left">
+                <span class="performer-rank">4</span>
+                <div class="performer-avatar">AH</div>
+                <span class="performer-name">Apex_Hunter</span>
+              </div>
+              <span class="performer-xp">980 XP</span>
+            </div>
+            <div class="performer-item">
+              <div class="performer-left">
+                <span class="performer-rank">5</span>
+                <div class="performer-avatar">ZE</div>
+                <span class="performer-name">Zenith</span>
+              </div>
+              <span class="performer-xp">940 XP</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 3: Daily Mission Progress -->
+        <div class="sidebar-panel">
+          <div class="panel-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            Daily Mission Progress
+          </div>
+          <div class="mission-info">
+            <span class="mission-pct">1/2 challenges complete</span>
+            <span class="mission-xp-bonus">+20 XP Bonus</span>
+          </div>
+          <div class="mission-bar">
+            <div class="mission-bar-fill"></div>
+          </div>
+          <p class="mission-footer">Complete one more challenge to claim today's bonus!</p>
+        </div>
+
+        <!-- Panel 4: Your Progress Today -->
+        <div class="sidebar-panel">
+          <div class="panel-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 22h20L12 2z"/></svg>
+            Your Progress Today
+          </div>
+          <div class="progress-center-wrap">
+            <div class="progress-ring-container">
+              <svg class="progress-ring-svg" width="120" height="120">
+                <defs>
+                  <linearGradient id="progressGradRight" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#4d8eff" />
+                    <stop offset="100%" stop-color="#00e5d4" />
+                  </linearGradient>
+                </defs>
+                <circle class="progress-ring-bg" cx="60" cy="60" r="48" />
+                <circle class="progress-ring-fill" cx="60" cy="60" r="48" id="myProgressRing" />
+              </svg>
+              <div class="progress-ring-text">
+                <span class="progress-ring-val" id="progressPercent">80%</span>
+                <span class="progress-ring-lbl">Progress</span>
+              </div>
+            </div>
+            <div class="progress-desc-row">
+              <div class="progress-desc-xp" id="myProgressText">320 / 400 XP</div>
+              <div class="progress-desc-sub" id="myRemainingXPText">80 XP to S+ Rank</div>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+    </main>
+  </div>
+
+  <script>
+    /* ── Auth Guard: redirect to login if not logged in ── */
+    const userRaw = sessionStorage.getItem('futrix_user');
+    if (!userRaw) {
+      window.location.href = 'login.html';
+    }
+
+    const user = JSON.parse(userRaw || '{}');
+    const name = user.name || 'Futrix Pilot';
+    const xp = parseFloat(user.xp || 12400);
+
+    /* ── Populate User Info ── */
+    document.getElementById('profileName').textContent = name;
+    document.getElementById('profileInitial').textContent = name.charAt(0).toUpperCase();
+    document.getElementById('topUserBtn').textContent = name.substring(0, 2).toUpperCase();
+
+    // Format XP for sidebar display
+    document.getElementById('sidebarXP').textContent = xp.toLocaleString('en-US', {maximumFractionDigits: 0});
+
+    // Populate stat cards available XP based on user's current session XP
+    document.getElementById('displayAvailableXP').textContent = xp.toLocaleString('en-US', {maximumFractionDigits: 0}) + ' XP';
+
+    // Rank grade based on XP
+    function getGrade(xp) {
+      if (xp >= 15000) return 'S+';
+      if (xp >= 10000) return 'S';
+      if (xp >= 5000) return 'A+';
+      if (xp >= 2000) return 'A';
+      if (xp >= 1000) return 'B+';
+      if (xp >= 500) return 'B';
+      return 'C';
+    }
+    const grade = getGrade(xp);
+    document.getElementById('displayRank').textContent = grade + ' Rank';
+
+    // Update 'Your Progress Today' dynamically
+    // Let's assume today's goal is 400 XP, and user has earned some amount
+    // Let's calculate based on current XP
+    // e.g. User has XP = 12400. Let's make it look like they earned 320 XP today.
+    // If user's session XP changed (e.g. from taking a test in exam.html), we can increment it!
+    const baseXP = 12080; // assume they started the day with 12080 XP
+    let todayEarned = Math.max(0, xp - baseXP);
+    if (todayEarned === 0) todayEarned = 320; // default mockup value
+    if (todayEarned > 400) todayEarned = 400;
+    
+    const targetXP = 400;
+    const progressPercent = Math.round((todayEarned / targetXP) * 100);
+    const remainingXP = Math.max(0, targetXP - todayEarned);
+
+    document.getElementById('progressPercent').textContent = progressPercent + '%';
+    document.getElementById('myProgressText').textContent = todayEarned + ' / ' + targetXP + ' XP';
+    
+    const nextGradeMap = {
+      'C': { next: 'B', limit: 500 },
+      'B': { next: 'B+', limit: 1000 },
+      'B+': { next: 'A', limit: 2000 },
+      'A': { next: 'A+', limit: 5000 },
+      'A+': { next: 'S', limit: 10000 },
+      'S': { next: 'S+', limit: 15000 },
+      'S+': { next: 'Elite Max', limit: 99999 }
+    };
+    
+    const nextGradeInfo = nextGradeMap[grade] || { next: 'S+', limit: 15000 };
+    const xpToNextGrade = Math.max(0, nextGradeInfo.limit - xp);
+    if (xpToNextGrade > 0) {
+      document.getElementById('myRemainingXPText').textContent = xpToNextGrade.toLocaleString('en-US', {maximumFractionDigits: 0}) + ' XP to ' + nextGradeInfo.next + ' Rank';
+    } else {
+      document.getElementById('myRemainingXPText').textContent = 'Highest Rank Achieved! ⚡';
+    }
+
+    // Set SVG progress stroke dashoffset
+    // radius is 48, circumference is 2 * PI * 48 = 301.59
+    const circumference = 2 * Math.PI * 48;
+    const fillPercent = progressPercent / 100;
+    const strokeDashoffset = circumference - (fillPercent * circumference);
+    document.getElementById('myProgressRing').style.strokeDashoffset = strokeDashoffset;
+
+    /* ── Live Topbar Timer (counts up) ── */
+    let seconds = 0;
+    function formatTime(s) {
+      const h = String(Math.floor(s / 3600)).padStart(2,'0');
+      const m = String(Math.floor((s % 3600) / 60)).padStart(2,'0');
+      const sec = String(s % 60).padStart(2,'0');
+      return `${h}:${m}:${sec}`;
+    }
+    setInterval(() => {
+      seconds++;
+      document.getElementById('timerDisplay').textContent = formatTime(seconds);
+    }, 1000);
+
+    /* ── Countdown Timer for Challenge of the Day ── */
+    let cotdSeconds = 5 * 3600 + 21 * 60 + 45; // 05h 21m 45s
+    const cotdCountdownEl = document.getElementById('cotdCountdown');
+    
+    function formatCOTD(totalSecs) {
+      const h = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
+      const m = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
+      const s = String(totalSecs % 60).padStart(2, '0');
+      return `${h}h ${m}m ${s}s`;
+    }
+    
+    const cotdTimer = setInterval(() => {
+      if (cotdSeconds <= 0) {
+        clearInterval(cotdTimer);
+        cotdCountdownEl.textContent = 'Challenge Expired!';
+      } else {
+        cotdSeconds--;
+        cotdCountdownEl.textContent = formatCOTD(cotdSeconds);
+      }
+    }, 1000);
+
+    /* ── Countdown Timer for Upcoming Challenge ── */
+    let upcomingSeconds = 3 * 3600 + 45 * 60 + 12; // 03:45:12
+    const upcomingTimerEl = document.getElementById('upcomingTimer');
+    
+    function formatUpcoming(totalSecs) {
+      const h = String(Math.floor(totalSecs / 3600)).padStart(2, '0');
+      const m = String(Math.floor((totalSecs % 3600) / 60)).padStart(2, '0');
+      const s = String(totalSecs % 60).padStart(2, '0');
+      return `Unlocks in ${h}:${m}:${s}`;
+    }
+    
+    const upcomingTimer = setInterval(() => {
+      if (upcomingSeconds <= 0) {
+        clearInterval(upcomingTimer);
+        upcomingTimerEl.textContent = 'Unlocked Now!';
+      } else {
+        upcomingSeconds--;
+        upcomingTimerEl.textContent = formatUpcoming(upcomingSeconds);
+      }
+    }, 1000);
+
+    /* ── Exam Tests Database ── */
+    const examTestsDatabase = {
+      NEET: [
+        { id: 'NEET_T_CELL', seriesId: 'NEET-CELL-DIV', title: 'Cell Division Quiz', questions: 15, duration: 10, xp: 40, maxMarks: 15, type: 'topic', desc: 'Cell cycle stages, mitosis, meiosis, and key regulatory checkpoints.' },
+        { id: 'NEET_T_CHEM', seriesId: 'NEET-CHEM-BOND', title: 'Chemical Bonding Quiz', questions: 15, duration: 12, xp: 45, maxMarks: 15, type: 'topic', desc: 'Ionic/covalent bonds, molecular structures, and hybridisation concepts.' },
+        { id: 'NEET_S_PHYS', seriesId: 'NEET-PHYS-MECH', title: 'Physics Mechanics Drill', questions: 25, duration: 20, xp: 80, maxMarks: 25, type: 'subject', desc: 'Comprehensive practice on laws of motion, work, energy, and power.' },
+        { id: 'NEET_S_BIOL', seriesId: 'NEET-BIOL-PHYS', title: 'Biology Physiology Booster', questions: 30, duration: 25, xp: 100, maxMarks: 30, type: 'subject', desc: 'Human physiology questions covering respiration, circulation, and digestion.' },
+        { id: 'NEET_R_TS1', seriesId: 'NEET-SERIES-01', title: 'NEET Test Series #1', questions: 45, duration: 45, xp: 150, maxMarks: 45, type: 'series', desc: 'Mock test series covering 50% syllabus of Physics, Chemistry & Biology.' },
+        { id: 'NEET_R_TS2', seriesId: 'NEET-SERIES-02', title: 'NEET Test Series #2', questions: 45, duration: 45, xp: 150, maxMarks: 45, type: 'series', desc: 'Physics, Chemistry and Biology mock covering remaining 50% syllabus.' },
+        { id: 'NEET_F_MOCK', seriesId: 'NEET-FULL-MOCK', title: 'NEET Full Length Mock 2026', questions: 90, duration: 90, xp: 300, maxMarks: 90, type: 'full', desc: 'Full syllabus simulation matching the exact NTA exam pattern and weightage.' }
+      ],
+      JEE: [
+        { id: 'JEE_T_MAT', seriesId: 'JEE-MATRICES', title: 'Matrices & Determinants', questions: 15, duration: 15, xp: 60, maxMarks: 15, type: 'topic', desc: 'Matrix operations, Cramer\'s rule, and system of linear equations.' },
+        { id: 'JEE_T_ELECT', seriesId: 'JEE-ELECTROSTAT', title: 'Electrostatics Practice', questions: 15, duration: 15, xp: 60, maxMarks: 15, type: 'topic', desc: 'Coulomb\'s Law, electric field, potential, and capacitance questions.' },
+        { id: 'JEE_S_CHEM', seriesId: 'JEE-CHEM-ORG', title: 'Organic Chemistry Booster', questions: 25, duration: 25, xp: 100, maxMarks: 25, type: 'subject', desc: 'Reaction mechanisms, isomerism, and conversions in organic chemistry.' },
+        { id: 'JEE_S_PHYS', seriesId: 'JEE-PHYS-ROT', title: 'Rotational Mechanics Booster', questions: 25, duration: 30, xp: 120, maxMarks: 25, type: 'subject', desc: 'Moment of inertia, angular momentum conservation, and rolling motion.' },
+        { id: 'JEE_R_TS1', seriesId: 'JEE-SERIES-01', title: 'JEE Main Test Series #1', questions: 30, duration: 30, xp: 120, maxMarks: 30, type: 'series', desc: 'Balanced 30-item mock series for Physics, Chemistry, and Mathematics.' },
+        { id: 'JEE_F_MOCK', seriesId: 'JEE-FULL-MOCK', title: 'JEE Main Full Syllabus Mock', questions: 75, duration: 180, xp: 300, maxMarks: 75, type: 'full', desc: 'Complete 3-hour mock exam covering the exact Mains pattern and syllabus.' }
+      ],
+      SSC: [
+        { id: 'SSC_T_QUANT', seriesId: 'SSC-PERCENTAGE', title: 'Percentages & Profit/Loss', questions: 20, duration: 15, xp: 50, maxMarks: 20, type: 'topic', desc: 'Calculations, discount strategies, profit margins, and successive percentage shifts.' },
+        { id: 'SSC_S_ENGL', seriesId: 'SSC-ENG-VOCAB', title: 'English Vocabulary Booster', questions: 25, duration: 15, xp: 40, maxMarks: 25, type: 'subject', desc: 'Synonyms, antonyms, idioms, phrases, and one-word substitutions.' },
+        { id: 'SSC_R_TSA', seriesId: 'SSC-SERIES-A', title: 'SSC CGL Practice Series A', questions: 50, duration: 30, xp: 100, maxMarks: 50, type: 'series', desc: 'Combined quantitative, logical reasoning, and English mock practice.' },
+        { id: 'SSC_F_MOCK', seriesId: 'SSC-FULL-MOCK', title: 'SSC CGL Tier-1 Full Mock', questions: 100, duration: 60, xp: 200, maxMarks: 100, type: 'full', desc: '100-item full length mock simulation covering logical, quant, English, and GK.' }
+      ],
+      UPSC: [
+        { id: 'UPSC_T_POLITY', seriesId: 'UPSC-CONSTITUTION', title: 'Indian Polity & Constitution', questions: 15, duration: 15, xp: 60, maxMarks: 15, type: 'topic', desc: 'Fundamental rights, directive principles, and parliament structure.' },
+        { id: 'UPSC_S_HIST', seriesId: 'UPSC-MODERN-HIST', title: 'Modern Indian History Drill', questions: 25, duration: 25, xp: 100, maxMarks: 25, type: 'subject', desc: 'Socio-religious movements, freedom struggle, and governor-generals.' },
+        { id: 'UPSC_R_CSAT', seriesId: 'UPSC-CSAT-SERIES', title: 'CSAT Reasoning Series', questions: 40, duration: 60, xp: 150, maxMarks: 40, type: 'series', desc: 'Logical reasoning, data sufficiency, and reading comprehension practice.' },
+        { id: 'UPSC_F_PRELIMS', seriesId: 'UPSC-PRELIMS-MOCK', title: 'IAS GS Prelims Full Mock', questions: 100, duration: 120, xp: 300, maxMarks: 100, type: 'full', desc: 'Full Paper-I General Studies syllabus simulation matching civil services standard.' }
+      ],
+      BANKING: [
+        { id: 'BANK_T_DI', seriesId: 'BANK-DATA-INTERP', title: 'Data Interpretation PO Mock', questions: 15, duration: 15, xp: 60, maxMarks: 15, type: 'topic', desc: 'Line graphs, bar charts, pie charts, and tabular DI questions.' },
+        { id: 'BANK_S_REAS', seriesId: 'BANK-PO-PUZZLES', title: 'High-Speed Reasoning Puzzles', questions: 25, duration: 20, xp: 100, maxMarks: 25, type: 'subject', desc: 'Linear, circular, and floor arrangements under strict timer constraints.' },
+        { id: 'BANK_R_IBPS', seriesId: 'BANK-IBPS-SERIES', title: 'IBPS PO Mock Series #1', questions: 35, duration: 20, xp: 120, maxMarks: 35, type: 'series', desc: 'Quantitative aptitude and reasoning section practice series.' },
+        { id: 'BANK_F_MOCK', seriesId: 'BANK-PO-FULLMOCK', title: 'SBI PO Prelims Full Mock', questions: 100, duration: 60, xp: 200, maxMarks: 100, type: 'full', desc: 'Full length mock containing English (30 Qs), Quant (35 Qs), and Reasoning (35 Qs).' }
+      ],
+      OTHER: [
+        { id: 'OTHER_T_QUANT', seriesId: 'GEN-BASIC-QUANT', title: 'Basic Quantitative Aptitude', questions: 15, duration: 15, xp: 40, maxMarks: 15, type: 'topic', desc: 'Fundamental arithmetic, averages, ratios, and simplification drills.' },
+        { id: 'OTHER_S_MENTAL', seriesId: 'GEN-MENTAL-AB', title: 'General Mental Ability Quiz', questions: 20, duration: 20, xp: 60, maxMarks: 20, type: 'subject', desc: 'Logical sequences, series completion, analogies, and blood relations.' },
+        { id: 'OTHER_R_GEN', seriesId: 'GEN-PRACTICE-SERIES', title: 'General Practice Series A', questions: 30, duration: 25, xp: 80, maxMarks: 30, type: 'series', desc: 'Mixed logical reasoning, quant, and language comprehension.' },
+        { id: 'OTHER_F_ASSESS', seriesId: 'GEN-FULL-ASSESS', title: 'General Stream Assessment', questions: 50, duration: 45, xp: 150, maxMarks: 50, type: 'full', desc: 'General capability test covering numerical, logical, and verbal sections.' }
+      ]
+    };
+
+    // ── Dynamic Locking/Unlocking based on Registered Exam Stream ──
+    const registeredPrep = (user.preparation || 'NEET').trim();
+    const cleanPrep = registeredPrep.toUpperCase();
+    const standardExams = ['NEET', 'JEE', 'SSC', 'UPSC', 'BANKING'];
+    const isCustom = !standardExams.includes(cleanPrep);
+    
+    // Show a small subtext in the header about their registered stream
+    const portalDesc = document.querySelector('.portal-desc');
+    if (portalDesc) {
+      portalDesc.innerHTML = `Choose an active challenge, earn XP, improve your rank, and climb the FUTRIX leaderboard.<br><span style="color: var(--teal); font-weight: 600; font-size: 0.82rem; display: block; margin-top: 0.4rem;">🎯 Your Registered Exam Stream: ${registeredPrep}</span>`;
+    }
+    
+    // Update main status for categories in first view
+    const categories = ['NEET', 'JEE', 'SSC', 'UPSC', 'BANKING', 'OTHER'];
+    categories.forEach(cat => {
+      const statusEl = document.getElementById('main-status-' + cat);
+      let isMatched = false;
+      if (cat === 'OTHER' && isCustom) {
+        isMatched = true;
+        const otherTitle = document.getElementById('main-title-Other');
+        if (otherTitle) otherTitle.textContent = `${registeredPrep} Test Center`;
+      } else if (cleanPrep === cat) {
+        isMatched = true;
+      }
+      
+      if (statusEl) {
+        if (isMatched) {
+          statusEl.innerHTML = `<span class="card-status-dot"></span>Active Now`;
+          statusEl.style.color = 'var(--success)';
+          const dot = statusEl.querySelector('.card-status-dot');
+          if (dot) {
+            dot.className = 'card-status-dot';
+            dot.style.background = 'var(--success)';
+            dot.style.boxShadow = '0 0 8px var(--success)';
+          }
+        } else {
+          statusEl.innerHTML = `<span class="card-status-dot dot-orange"></span>Coming Soon`;
+          statusEl.style.color = 'var(--accent)';
+          const dot = statusEl.querySelector('.card-status-dot');
+          if (dot) {
+            dot.className = 'card-status-dot dot-orange';
+            dot.style.background = 'var(--accent)';
+            dot.style.boxShadow = '0 0 8px var(--accent)';
+          }
+        }
+      }
+    });
+
+    /* ── Sub-view rendering and switching ── */
+    let currentSelectedExam = null;
+
+    function renderTests(examId, typeFilter, isUnlocked) {
+      const grid = document.getElementById('testsDynamicGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      
+      const tests = examTestsDatabase[examId] || [];
+      const filtered = typeFilter === 'all' ? tests : tests.filter(t => t.type === typeFilter);
+      
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 1.5rem; color: var(--text-muted); font-size: 0.9rem;">
+            No tests available in this category yet.
+          </div>
+        `;
+        return;
+      }
+      
+      filtered.forEach(test => {
+        let testTitle = test.title;
+        if (examId === 'OTHER' && isUnlocked && cleanPrep !== 'OTHER') {
+          testTitle = testTitle.replace('General', registeredPrep);
+        }
+        
+        const card = document.createElement('div');
+        card.className = 'challenge-card';
+        card.style.minHeight = '230px';
+        
+        const badgeColorStyle = test.type === 'topic' ? 'background: rgba(173, 198, 255, 0.1); color: var(--primary);' :
+                                test.type === 'subject' ? 'background: rgba(255, 169, 77, 0.1); color: var(--accent);' :
+                                test.type === 'series' ? 'background: rgba(167, 139, 250, 0.1); color: var(--purple);' :
+                                'background: rgba(0, 229, 212, 0.1); color: var(--teal);';
+        
+        const typeLabel = test.type === 'topic' ? 'Topic-Wise' :
+                          test.type === 'subject' ? 'Subject-Wise' :
+                          test.type === 'series' ? 'Series-Wise' : 'Full Mock';
+        
+        const statusHTML = isUnlocked ? `
+          <span class="card-badge-status" style="color: var(--success);">
+            <span class="card-status-dot"></span>
+            Active Now
+          </span>
+        ` : `
+          <span class="card-badge-status" style="color: var(--accent);">
+            <span class="card-status-dot dot-orange"></span>
+            Coming Soon
+          </span>
+        `;
+        
+        let btnHTML = '';
+        if (isUnlocked) {
+          btnHTML = `<button class="btn-start-card" style="
+            background: rgba(77, 142, 255, 0.1);
+            border-color: var(--primary-btn);
+            color: var(--primary);
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1.2rem;
+          ">🚀 Start Challenge</button>`;
+        } else {
+          btnHTML = `<button class="btn-start-card" disabled style="
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.04);
+            color: var(--text-muted);
+            width: 100%;
+            margin-top: 1.2rem;
+          ">🔒 Coming Soon</button>`;
+        }
+        
+        card.innerHTML = `
+          <div class="card-top">
+            <div class="card-badge-row">
+              <span class="card-badge" style="${badgeColorStyle}">${typeLabel}</span>
+              ${statusHTML}
+            </div>
+            <h3 class="card-title">${testTitle}</h3>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.4rem;">
+              ${test.desc}
+            </p>
+          </div>
+          <div>
+            <div class="card-meta-list" style="margin-top: 0.5rem; padding-top: 0.5rem;">
+              <div class="meta-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+                <span><strong>${test.questions}</strong> Questions</span>
+              </div>
+              <div class="meta-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span><strong>${test.duration}</strong> Minutes</span>
+              </div>
+              <div class="meta-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span><strong>+${test.xp} XP</strong> Reward</span>
+              </div>
+            </div>
+            ${btnHTML}
+          </div>
+        `;
+        
+        if (isUnlocked) {
+          const btn = card.querySelector('button');
+          btn.onclick = () => {
+            sessionStorage.setItem('futrix_selected_test', JSON.stringify({
+              seriesId: test.seriesId,
+              title: testTitle,
+              questions: test.questions,
+              duration: test.duration,
+              maxMarks: test.maxMarks,
+              xp: test.xp
+            }));
+            window.location.href = 'instruction.html';
+          };
+        }
+        
+        grid.appendChild(card);
+      });
+    }
+
+    function openExamDetailView(examId) {
+      currentSelectedExam = examId;
+      
+      const tabBtns = document.querySelectorAll('#testTypeTabs .tab-btn');
+      tabBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-type') === 'all');
+      });
+      
+      const titleEl = document.getElementById('testsDetailTitle');
+      const registeredBadge = document.getElementById('registeredBadge');
+      const lockNotice = document.getElementById('lockNotice');
+      
+      let isMatched = false;
+      let displayTitle = '';
+      
+      if (examId === 'NEET') {
+        displayTitle = 'NEET Exam Test Center';
+        isMatched = (cleanPrep === 'NEET');
+      } else if (examId === 'JEE') {
+        displayTitle = 'JEE Exam Test Center';
+        isMatched = (cleanPrep === 'JEE');
+      } else if (examId === 'SSC') {
+        displayTitle = 'SSC CGL Exam Test Center';
+        isMatched = (cleanPrep === 'SSC');
+      } else if (examId === 'UPSC') {
+        displayTitle = 'UPSC IAS Exam Test Center';
+        isMatched = (cleanPrep === 'UPSC');
+      } else if (examId === 'BANKING') {
+        displayTitle = 'Banking PO Exam Test Center';
+        isMatched = (cleanPrep === 'BANKING');
+      } else if (examId === 'OTHER') {
+        if (isCustom) {
+          displayTitle = `${registeredPrep} Exam Test Center`;
+          isMatched = true;
+        } else {
+          displayTitle = 'General Exam Test Center';
+          isMatched = (cleanPrep === 'OTHER');
+        }
+      }
+      
+      if (titleEl) titleEl.textContent = displayTitle;
+      
+      if (isMatched) {
+        registeredBadge.style.display = 'inline-block';
+        registeredBadge.textContent = '🎯 Active Stream';
+        registeredBadge.style.color = 'var(--success)';
+        registeredBadge.style.background = 'rgba(0, 230, 118, 0.08)';
+        registeredBadge.style.borderColor = 'rgba(0, 230, 118, 0.2)';
+        lockNotice.style.display = 'none';
+      } else {
+        registeredBadge.style.display = 'inline-block';
+        registeredBadge.textContent = '🔒 Locked Stream';
+        registeredBadge.style.color = 'var(--accent)';
+        registeredBadge.style.background = 'rgba(255, 169, 77, 0.08)';
+        registeredBadge.style.borderColor = 'rgba(255, 169, 77, 0.2)';
+        lockNotice.style.display = 'flex';
+      }
+      
+      renderTests(examId, 'all', isMatched);
+      
+      document.getElementById('examsSearchContainer').style.display = 'none';
+      document.getElementById('examsListView').style.display = 'none';
+      document.getElementById('testsDetailView').style.display = 'flex';
+    }
+
+    // Bind exam category cards clicks
+    const examCards = document.querySelectorAll('.exam-category-card');
+    examCards.forEach(card => {
+      const btn = card.querySelector('.btn-open-exam');
+      const examId = card.getAttribute('data-exam-id');
+      
+      const openAction = () => openExamDetailView(examId);
+      
+      if (btn) btn.onclick = openAction;
+      card.onclick = (e) => {
+        if (e.target.classList.contains('btn-open-exam')) return;
+        openAction();
+      };
+    });
+
+    // Bind back button
+    document.getElementById('btnBackToExams').onclick = () => {
+      document.getElementById('testsDetailView').style.display = 'none';
+      document.getElementById('examsSearchContainer').style.display = 'block';
+      document.getElementById('examsListView').style.display = 'grid';
+      currentSelectedExam = null;
+      
+      // Keep search filters matching what's in input if not empty
+      const searchInput = document.getElementById('examSearchInput');
+      if (searchInput && searchInput.value) {
+        searchInput.dispatchEvent(new Event('input'));
+      }
+    };
+
+    // Bind type filter tabs inside sub-view
+    const testTypeBtns = document.querySelectorAll('#testTypeTabs .tab-btn');
+    testTypeBtns.forEach(btn => {
+      btn.onclick = () => {
+        testTypeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const typeFilter = btn.getAttribute('data-type');
+        const isMatched = document.getElementById('lockNotice').style.display === 'none';
+        renderTests(currentSelectedExam, typeFilter, isMatched);
+      };
+    });
+
+    /* ── Search Bar Filter and Redirect Logic ── */
+    const searchInput = document.getElementById('examSearchInput');
+    const btnClearSearch = document.getElementById('btnClearSearch');
+    const categoryCards = document.querySelectorAll('.exam-category-card');
+
+    searchInput.addEventListener('input', () => {
+      const val = searchInput.value.trim().toLowerCase();
+      
+      // Toggle clear button visibility
+      btnClearSearch.style.display = val ? 'block' : 'none';
+      
+      categoryCards.forEach(card => {
+        const examId = card.getAttribute('data-exam-id').toLowerCase();
+        const title = card.querySelector('.card-title').textContent.toLowerCase();
+        const desc = card.querySelector('p').textContent.toLowerCase();
+        
+        let isMatched = title.includes(val) || desc.includes(val) || examId.includes(val);
+        
+        // Match custom prep if OTHER is matched
+        if (examId === 'other' && isCustom && registeredPrep.toLowerCase().includes(val)) {
+          isMatched = true;
+        }
+        
+        card.style.display = isMatched ? 'flex' : 'none';
+      });
+    });
+
+    btnClearSearch.addEventListener('click', () => {
+      searchInput.value = '';
+      btnClearSearch.style.display = 'none';
+      categoryCards.forEach(card => card.style.display = 'flex');
+      searchInput.focus();
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const visibleCards = Array.from(categoryCards).filter(c => c.style.display !== 'none');
+        if (visibleCards.length === 1) {
+          const examId = visibleCards[0].getAttribute('data-exam-id');
+          openExamDetailView(examId);
+        }
+      }
+    });
+
+    /* ── Close Testing Notice Banner ── */
+    const closeNoticeBtn = document.getElementById('btnCloseNotice');
+    const testingNoticeBanner = document.getElementById('testingNoticeBanner');
+    if (closeNoticeBtn && testingNoticeBanner) {
+      closeNoticeBtn.addEventListener('click', () => {
+        testingNoticeBanner.style.display = 'none';
+      });
+    }
+
+    /* ── Logout ── */
+    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      sessionStorage.removeItem('futrix_user');
+      window.location.href = 'login.html';
+    });
+
+    /* ── Sidebar Toggle (Mobile) ── */
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const toggleBtn = document.getElementById('sidebarToggle');
+
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('open');
+    });
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  </script>
+</body>
+</html>

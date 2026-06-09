@@ -892,7 +892,7 @@ async function plainFetch(url) {
 ═══════════════════════════════════════════════ */
 async function loadQuestions() {
   const baseUrl = APPS_SCRIPT_URL;
-  const params  = { action: 'questions' };
+  const params  = { action: 'questions', seriesId: EXAM_CONFIG.seriesId };
   let data      = null;
 
   // Strategy 1: JSONP
@@ -902,7 +902,7 @@ async function loadQuestions() {
     console.warn('JSONP failed:', err1.message, '— trying fetch...');
     // Strategy 2: Plain fetch
     try {
-      data = await plainFetch(baseUrl + '?action=questions');
+      data = await plainFetch(baseUrl + '?action=questions&seriesId=' + encodeURIComponent(EXAM_CONFIG.seriesId));
     } catch (err2) {
       console.error('Fetch also failed:', err2.message);
     }

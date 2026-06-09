@@ -629,13 +629,13 @@
     <!-- Nav -->
     <ul class="nav-list">
       <li class="nav-item">
-        <a href="#" class="active">
+        <a href="instruction.html" class="active">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
           Dashboard
         </a>
       </li>
       <li class="nav-item">
-        <a href="#">
+        <a href="active-exams.html">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
           Active Exams
         </a>
@@ -1038,19 +1038,51 @@
     sessionStorage.setItem('futrix_exam_config', JSON.stringify(cfg));
   }
 
-  // Try fetch config
-  jsonpOnce(APPS_SCRIPT_URL + '?action=getConfig', (data) => {
-    if (data) {
-      applyConfig(data);
-    } else {
-      // Fallback: try plain fetch
-      fetch(APPS_SCRIPT_URL + '?action=getConfig', { redirect: 'follow' })
-        .then(r => r.text())
-        .then(t => {
-          const clean = t.trim().replace(/^[a-zA-Z_$][a-zA-Z0-9_$.]*\s*\(/, '').replace(/\)\s*;?\s*$/, '');
-          applyConfig(JSON.parse(clean));
-        }).catch(() => {});
+  // Check if a specific test was selected from active-exams.html
+  const selectedTestRaw = sessionStorage.getItem('futrix_selected_test');
+  if (selectedTestRaw) {
+    try {
+      const selectedTest = JSON.parse(selectedTestRaw);
+      
+      // Update Title in UI
+      const instTitleEl = document.querySelector('.inst-title');
+      if (instTitleEl) {
+        instTitleEl.textContent = selectedTest.title + ' Instructions';
+      }
+      
+      applyConfig({
+        success: true,
+        seriesId: selectedTest.seriesId,
+        questions: selectedTest.questions,
+        duration: selectedTest.duration,
+        maxMarks: selectedTest.maxMarks || selectedTest.questions
+      });
+    } catch (err) {
+      console.error('Error loading selected test config:', err);
     }
+  } else {
+    // Try fetch config (legacy behavior for default exam)
+    jsonpOnce(APPS_SCRIPT_URL + '?action=getConfig', (data) => {
+      if (data) {
+        applyConfig(data);
+      } else {
+        // Fallback: try plain fetch
+        fetch(APPS_SCRIPT_URL + '?action=getConfig', { redirect: 'follow' })
+          .then(r => r.text())
+          .then(t => {
+            const clean = t.trim().replace(/^[a-zA-Z_$][a-zA-Z0-9_$.]*\s*\(/, '').replace(/\)\s*;?\s*$/, '');
+            applyConfig(JSON.parse(clean));
+          }).catch(() => {});
+      }
+    });
+  }
+
+  // Clear selected test if they click Dashboard
+  const dashLinks = document.querySelectorAll('a[href="instruction.html"]');
+  dashLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      sessionStorage.removeItem('futrix_selected_test');
+    });
   });
 
   /* ── Start Test → Check duplicate then go to Exam ── */
