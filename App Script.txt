@@ -22,6 +22,16 @@
  * which ensures no Apps Script logic shifts are required.
  */
 
+// ── EMAIL DELIVERY CONFIGURATION (Select your preferred mailing service)
+// Options:
+// - "GMAIL"  : Uses GmailApp.sendEmail. Free, but personal @gmail.com accounts may go to Spam.
+// - "BREVO"  : Uses Brevo (Sendinblue) API. Free 300 emails/day. Highly recommended to land in Inbox.
+// - "RESEND" : Uses Resend.com API. Free 3,000 emails/month. Highly recommended to land in Inbox.
+var EMAIL_SERVICE  = "GMAIL"; 
+var BREVO_API_KEY  = "YOUR_BREVO_API_KEY_HERE";
+var RESEND_API_KEY = "YOUR_RESEND_API_KEY_HERE";
+var SENDER_EMAIL   = "your_verified_sender_email@gmail.com"; // Required for Brevo / Resend
+
 function doGet(e) {
   var callback = e.parameter.callback || '';
   var action   = e.parameter.action   || '';
@@ -86,6 +96,7 @@ function verifyLogin(e) {
   var phoneCol = getColumnIndexByName(sheet, 'phone', 4);
   var xpCol    = getXPColumn(sheet);
   var refXpCol = getReferralXPColumn(sheet);
+  var prepCol  = getColumnIndexByName(sheet, 'preparation', 9);
 
   for (var i = 1; i < data.length; i++) {
     var rowEmail = String(data[i][emailCol - 1]).toLowerCase().trim();
@@ -94,7 +105,8 @@ function verifyLogin(e) {
       var xp = parseFloat(data[i][xpCol - 1]) || 0;
       if (xp === 0) { xp = 100; sheet.getRange(i + 1, xpCol).setValue(100); }
       var referralXp = parseFloat(data[i][refXpCol - 1]) || 0;
-      return { success: true, name: String(data[i][nameCol - 1]).trim(), email: email, phone: phone, xp: xp, referralXp: referralXp };
+      var prep = String(data[i][prepCol - 1] || 'Other').trim();
+      return { success: true, name: String(data[i][nameCol - 1]).trim(), email: email, phone: phone, xp: xp, referralXp: referralXp, preparation: prep };
     }
   }
   return { success: false, message: 'Invalid email or mobile number. Please try again.' };
@@ -481,20 +493,100 @@ function sendOTP(e) {
   
   // Send email
   try {
-    var plainTextBody = "Hello Pilot,\n\n" +
-                        "Your email verification code for FUTRIX is: " + otp + "\n\n" +
-                        "Please enter this code on the registration page to verify your email address.\n\n" +
-                        "This code is valid for 10 minutes. Please do not share it with anyone.\n\n" +
-                        "Best regards,\n" +
-                        "FUTRIX Team";
-
-    GmailApp.sendEmail(email, "FUTRIX Verification Code: " + otp, plainTextBody, {
-      name: "FUTRIX Pilot Portal"
-    });
-    return { success: true, message: 'OTP sent successfully to your email.' };
+    var subject = "Verify your email address - Futrix Exam Portal";
+    
+    var htmlBody = "<div style=\"background-color:#f8fafc;padding:30px 15px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;\">" +
+                   "  <div style=\"max-width:480px;margin:0 auto;background-color:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05),0 2px 4px -1px rgba(0,0,0,0.03);\">" +
+                   "    <div style=\"background-color:#1e3a8a;padding:24px;text-align:center;\">" +
+                   "      <h1 style=\"color:#ffffff;margin:0;font-size:24px;font-weight:700;letter-spacing:1px;\">FUTRIX</h1>" +
+                   "      <p style=\"color:#93c5fd;margin:4px 0 0 0;font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;\">Pilot Exam Portal</p>" +
+                   "    </div>" +
+                   "    <div style=\"padding:30px 24px;\">" +
+                   "      <p style=\"font-size:16px;color:#1e293b;margin:0 0 16px 0;line-height:1.5;\">Hello Pilot,</p>" +
+                   "      <p style=\"font-size:14px;color:#475569;margin:0 0 24px 0;line-height:1.6;\">Thank you for initiating your registration at the Futrix Pilot Portal. To verify your email address, please enter the one-time verification code below:</p>" +
+                   "      <div style=\"text-align:center;margin:24px 0;padding:16px;background-color:#f1f5f9;border-radius:12px;\">" +
+                   "        <span style=\"font-family:'Courier New',Courier,monospace;font-size:32px;font-weight:700;color:#1e3a8a;letter-spacing:6px;display:inline-block;padding-left:6px;\">" + otp + "</span>" +
+                   "      </div>" +
+                   "      <p style=\"font-size:12px;color:#64748b;margin:0 0 24px 0;line-height:1.5;text-align:center;\">This verification code is valid for 10 minutes. For security reasons, please do not share this code with anyone.</p>" +
+                   "      <div style=\"border-top:1px solid #e2e8f0;padding-top:20px;text-align:center;\">" +
+                   "        <p style=\"font-size:11px;color:#94a3b8;margin:0;line-height:1.6;\">This is an automated security notification from Futrix.<br>If you did not request this code, you can safely ignore this email.</p>" +
+                   "      </div>" +
+                   "    </div>" +
+                   "    <div style=\"background-color:#f8fafc;padding:16px;text-align:center;border-top:1px solid #e2e8f0;\">" +
+                   "      <p style=\"font-size:10px;color:#94a3b8;margin:0;\">&copy; 2026 Futrix Exam Portal. All rights reserved.</p>" +
+                   "    </div>" +
+                   "  </div>" +
+                   "</div>";
+                   
+    var sent = sendEmailViaProvider(email, subject, otp, htmlBody);
+    if (sent) {
+      return { success: true, message: 'OTP sent successfully to your email.' };
+    } else {
+      return { success: false, message: 'Failed to dispatch email verification. Please check settings.' };
+    }
   } catch (err) {
     return { success: false, message: 'Error sending email: ' + err.message };
   }
+}
+
+// ── EMAIL PROVIDER ROUTER: Dispatches the email based on the configured service
+function sendEmailViaProvider(email, subject, otp, htmlBody) {
+  var service = EMAIL_SERVICE.toUpperCase().trim();
+  
+  if (service === "BREVO" && BREVO_API_KEY && BREVO_API_KEY !== "YOUR_BREVO_API_KEY_HERE") {
+    var url = "https://api.brevo.com/v3/smtp/email";
+    var payload = {
+      sender: { name: "FUTRIX Pilot Portal", email: SENDER_EMAIL },
+      to: [{ email: email }],
+      subject: subject,
+      htmlContent: htmlBody
+    };
+    var options = {
+      method: "POST",
+      headers: {
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json",
+        "accept": "application/json"
+      },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    };
+    var response = UrlFetchApp.fetch(url, options);
+    var resCode = response.getResponseCode();
+    if (resCode === 200 || resCode === 201) return true;
+    Logger.log("Brevo API Error: " + response.getContentText());
+  } 
+  
+  if (service === "RESEND" && RESEND_API_KEY && RESEND_API_KEY !== "YOUR_RESEND_API_KEY_HERE") {
+    var url = "https://api.resend.com/emails";
+    var payload = {
+      from: "FUTRIX <onboarding@resend.dev>",
+      to: [email],
+      subject: subject,
+      html: htmlBody
+    };
+    var options = {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + RESEND_API_KEY,
+        "Content-Type": "application/json"
+      },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    };
+    var response = UrlFetchApp.fetch(url, options);
+    var resCode = response.getResponseCode();
+    if (resCode === 200 || resCode === 201) return true;
+    Logger.log("Resend API Error: " + response.getContentText());
+  }
+
+  // Fallback to standard GmailApp
+  var plainText = "Hello Pilot,\n\nYour email verification code for FUTRIX is: " + otp + "\n\nThis code is valid for 10 minutes.";
+  GmailApp.sendEmail(email, subject, plainText, {
+    name: "FUTRIX Pilot Portal",
+    htmlBody: htmlBody
+  });
+  return true;
 }
 
 // ── VERIFY OTP: Validates the entered OTP code
