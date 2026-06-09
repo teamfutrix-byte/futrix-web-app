@@ -1492,26 +1492,10 @@
               </div>
 
               <!-- Email -->
-              <div class="field" id="fieldEmail" style="position: relative;">
-                <input type="email" id="emailAddress" name="emailAddress" placeholder="e.g. rajesh@gmail.com" autocomplete="email" style="padding-right: 95px;" />
+              <div class="field" id="fieldEmail">
+                <input type="email" id="emailAddress" name="emailAddress" placeholder="e.g. rajesh@gmail.com" autocomplete="email" />
                 <label for="emailAddress">Email Address</label>
-                <button type="button" id="sendOtpBtn" style="
-                  position: absolute;
-                  right: 0;
-                  bottom: 6px;
-                  background: rgba(77, 142, 255, 0.15);
-                  border: 1px solid var(--primary-btn);
-                  color: var(--primary);
-                  font-family: 'Geist', sans-serif;
-                  font-size: 0.7rem;
-                  font-weight: 600;
-                  padding: 0.35rem 0.65rem;
-                  border-radius: 6px;
-                  cursor: pointer;
-                  transition: all 0.2s ease;
-                  z-index: 10;
-                ">Send OTP</button>
-                <div class="field-line" style="width: calc(100% - 95px);"></div>
+                <div class="field-line"></div>
                 <div class="field-error">Please enter a valid email address</div>
               </div>
 
@@ -1845,43 +1829,6 @@
       }
     });
 
-    document.getElementById('sendOtpBtn').addEventListener('click', async () => {
-      const emailInput = document.getElementById('emailAddress');
-      const email = emailInput.value.trim();
-      const emailField = document.getElementById('fieldEmail');
-      
-      emailField.classList.remove('error');
-      
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        emailField.classList.add('error');
-        showToast('Please enter a valid email address first.', 'error');
-        return;
-      }
-      
-      const btn = document.getElementById('sendOtpBtn');
-      btn.disabled = true;
-      btn.textContent = 'Sending...';
-      
-      try {
-        const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'sendOTP', email: email });
-        if (res && res.success) {
-          showToast('OTP verification code sent to your email!', 'success');
-          openOtpModal(email);
-          btn.textContent = 'Verify Email';
-          btn.disabled = false;
-        } else {
-          showToast(res ? res.message : 'Failed to send OTP. Try again.', 'error');
-          btn.disabled = false;
-          btn.textContent = 'Send OTP';
-        }
-      } catch (err) {
-        console.error('OTP send error:', err);
-        showToast('Error sending OTP. Please check connection and try again.', 'error');
-        btn.disabled = false;
-        btn.textContent = 'Send OTP';
-      }
-    });
-
     document.getElementById('modalResendBtn').addEventListener('click', async () => {
       const email = document.getElementById('emailAddress').value.trim();
       const resendBtn = document.getElementById('modalResendBtn');
@@ -1925,15 +1872,10 @@
           showToast('Email verified successfully! ✓', 'success');
           isEmailVerified = true;
           document.getElementById('emailAddress').readOnly = true;
-          
-          const sendBtn = document.getElementById('sendOtpBtn');
-          sendBtn.textContent = 'Verified ✓';
-          sendBtn.style.background = 'rgba(0, 230, 118, 0.15)';
-          sendBtn.style.borderColor = 'var(--success)';
-          sendBtn.style.color = 'var(--success)';
-          sendBtn.disabled = true;
-          
           closeOtpModal();
+          
+          // Trigger the final registration submit directly
+          await submitRegistration();
         } else {
           showToast(res ? res.message : 'Invalid OTP. Please try again.', 'error');
         }
@@ -2018,11 +1960,7 @@
       if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
         emailField.classList.add('error'); valid = false;
       }
-      if (!isEmailVerified) {
-        showToast('Please verify your email address via OTP first.', 'error');
-        emailField.classList.add('error');
-        valid = false;
-      }
+
       if (!phone.trim() || isFakePhone(phone.trim())) {
         phoneField.classList.add('error'); valid = false;
       }
@@ -2080,17 +2018,12 @@
       });
     }
 
-    // ── Form Submit → Apps Script
-    document.getElementById('registrationForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
+    // ── Function to Submit final Registration
+    async function submitRegistration() {
       const name = document.getElementById('fullName').value;
       const email = document.getElementById('emailAddress').value;
       const phone = document.getElementById('phoneNumber').value;
 
-      if (!validateForm(name, email, phone)) return;
-
-      // Show loading
       const btn = document.getElementById('submitBtn');
       const btnText = document.getElementById('btnText');
       const spinner = document.getElementById('spinner');
@@ -2100,7 +2033,6 @@
 
       try {
         const prepValue = selectedExam;
-
         const dobVal = document.getElementById('dob').value.trim();
         const guardianNameVal = document.getElementById('guardianName').value.trim();
         const guardianContactVal = document.getElementById('guardianContact').value.trim();
@@ -2149,7 +2081,6 @@
           btnText.style.display = 'inline';
           spinner.style.display = 'none';
         }
-
       } catch (err) {
         console.error('Submission error:', err);
         showToast('Something went wrong. Please try again.', 'error');
@@ -2157,6 +2088,47 @@
         btnText.style.display = 'inline';
         spinner.style.display = 'none';
       }
+    }
+
+    // ── Form Submit → Apps Script
+    document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('fullName').value;
+      const email = document.getElementById('emailAddress').value;
+      const phone = document.getElementById('phoneNumber').value;
+
+      if (!validateForm(name, email, phone)) return;
+
+      if (!isEmailVerified) {
+        // Show loading state on submit button while requesting OTP
+        const btn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const spinner = document.getElementById('spinner');
+        btn.disabled = true;
+        btnText.style.display = 'none';
+        spinner.style.display = 'block';
+
+        try {
+          const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'sendOTP', email: email.trim() });
+          if (res && res.success) {
+            showToast('OTP verification code sent to your email!', 'success');
+            openOtpModal(email.trim());
+          } else {
+            showToast(res ? res.message : 'Failed to send OTP. Try again.', 'error');
+          }
+        } catch (err) {
+          console.error('OTP send error:', err);
+          showToast('Error sending OTP. Please check connection and try again.', 'error');
+        } finally {
+          btn.disabled = false;
+          btnText.style.display = 'inline';
+          spinner.style.display = 'none';
+        }
+        return;
+      }
+
+      await submitRegistration();
     });
 
     function simulateSuccess(name) {

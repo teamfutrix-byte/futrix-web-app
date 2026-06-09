@@ -103,6 +103,55 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
     return false;
   };
 
+  const submitRegistration = async () => {
+    setIsLoading(true);
+    try {
+      const prepValue = selectedExam;
+      const regParams = {
+        action: 'register',
+        fullName: fullName.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        dob: dob.trim(),
+        guardianName: guardianName.trim(),
+        guardianContact: guardianContact.trim(),
+        city: city.trim(),
+        instituteName: instituteName.trim(),
+        pinCode: pinCode.trim(),
+        preparation: prepValue,
+        referral: referral.trim()
+      };
+
+      let regRes = null;
+      try {
+        regRes = await jsonpRequest(APPS_SCRIPT_URL, regParams);
+      } catch (err) {
+        console.warn('JSONP registration failed, trying fetch fallback...', err);
+        try {
+          const url = `${APPS_SCRIPT_URL}?${new URLSearchParams(regParams).toString()}`;
+          const res = await fetch(url, { redirect: 'follow' });
+          const txt = await res.text();
+          const cleaned = txt.trim().replace(/^[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/, '').replace(/\)\s*;?\s*$/, '');
+          regRes = JSON.parse(cleaned);
+        } catch (fetchErr) {
+          console.error('Fetch registration fallback also failed:', fetchErr);
+        }
+      }
+
+      if (regRes && regRes.success) {
+        setIsSuccess(true);
+        onShowToast(`Welcome aboard, ${fullName.split(' ')[0]}! 🚀`, 'success');
+      } else {
+        onShowToast(regRes ? regRes.message : 'Registration failed. Please try again.', 'error');
+      }
+    } catch (err) {
+      console.error('Submission error:', err);
+      onShowToast('Something went wrong. Please try again.', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSendOTP = async () => {
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setErrors(prev => ({ ...prev, email: true }));
@@ -143,6 +192,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
         onShowToast('Email verified successfully! ✓', 'success');
         setIsEmailVerified(true);
         setIsOtpModalOpen(false);
+        await submitRegistration();
       } else {
         onShowToast(res ? res.message : 'Invalid OTP. Please try again.', 'error');
       }
@@ -176,11 +226,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
       newErrors.email = true;
       valid = false;
     }
-    if (!isEmailVerified) {
-      onShowToast('Please verify your email address via OTP first.', 'error');
-      newErrors.email = true;
-      valid = false;
-    }
+
     if (!phone.trim() || isFakePhone(phone.trim())) {
       newErrors.phone = true;
       valid = false;
@@ -219,56 +265,29 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
     e.preventDefault();
     if (!validate()) return;
 
-    setIsLoading(true);
-
-    try {
-      const prepValue = selectedExam;
-
-      // Submit registration details directly to Apps Script
-      const regParams = {
-        action: 'register',
-        fullName: fullName.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        dob: dob.trim(),
-        guardianName: guardianName.trim(),
-        guardianContact: guardianContact.trim(),
-        city: city.trim(),
-        instituteName: instituteName.trim(),
-        pinCode: pinCode.trim(),
-        preparation: prepValue,
-        referral: referral.trim()
-      };
-
-      let regRes = null;
+    if (!isEmailVerified) {
+      setIsLoading(true);
       try {
-        regRes = await jsonpRequest(APPS_SCRIPT_URL, regParams);
-      } catch (err) {
-        console.warn('JSONP registration failed, trying fetch fallback...', err);
-        try {
-          const url = `${APPS_SCRIPT_URL}?${new URLSearchParams(regParams).toString()}`;
-          const res = await fetch(url, { redirect: 'follow' });
-          const txt = await res.text();
-          const cleaned = txt.trim().replace(/^[a-zA-Z_$][a-zA-Z0-9_$]*\s*\(/, '').replace(/\)\s*;?\s*$/, '');
-          regRes = JSON.parse(cleaned);
-        } catch (fetchErr) {
-          console.error('Fetch registration fallback also failed:', fetchErr);
+        const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'sendOTP', email: email.trim() });
+        if (res && res.success) {
+          onShowToast('OTP verification code sent to your email!', 'success');
+          setIsOtpSent(true);
+          setOtp('');
+          setIsOtpModalOpen(true);
+          setOtpCooldown(60);
+        } else {
+          onShowToast(res ? res.message : 'Failed to send OTP. Try again.', 'error');
         }
+      } catch (err) {
+        console.error(err);
+        onShowToast('Error sending OTP. Please check your connection.', 'error');
+      } finally {
+        setIsLoading(false);
       }
-
-      if (regRes && regRes.success) {
-        setIsSuccess(true);
-        onShowToast(`Welcome aboard, ${fullName.split(' ')[0]}! 🚀`, 'success');
-      } else {
-        onShowToast(regRes ? regRes.message : 'Registration failed. Please try again.', 'error');
-      }
-
-    } catch (err) {
-      console.error('Submission error:', err);
-      onShowToast('Something went wrong. Please try again.', 'error');
-    } finally {
-      setIsLoading(false);
+      return;
     }
+
+    await submitRegistration();
   };
 
   return (
@@ -307,7 +326,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
                     </div>
 
                     {/* Email */}
-                    <div className={`field ${errors.email ? 'error' : ''}`} style={{ position: 'relative' }}>
+                    <div className={`field ${errors.email ? 'error' : ''}`}>
                       <input 
                         type="email" 
                         id="emailAddress" 
@@ -315,35 +334,10 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
                         onChange={(e) => { setEmail(e.target.value); setErrors(prev => ({ ...prev, email: false })); }}
                         placeholder="e.g. rajesh@gmail.com" 
                         autoComplete="email" 
-                        style={{ paddingRight: '95px' }}
                         readOnly={isEmailVerified}
                       />
                       <label htmlFor="emailAddress">Email Address</label>
-                      <button 
-                        type="button" 
-                        id="sendOtpBtn" 
-                        disabled={isOtpSending || otpCooldown > 0 || isEmailVerified}
-                        onClick={handleSendOTP}
-                        style={{
-                          position: 'absolute',
-                          right: '0',
-                          bottom: '6px',
-                          background: isEmailVerified ? 'rgba(0, 230, 118, 0.15)' : 'rgba(77, 142, 255, 0.15)',
-                          border: isEmailVerified ? '1px solid var(--success)' : '1px solid var(--primary-btn)',
-                          color: isEmailVerified ? 'var(--success)' : 'var(--primary)',
-                          fontFamily: "'Geist', sans-serif",
-                          fontSize: '0.7rem',
-                          fontWeight: '600',
-                          padding: '0.35rem 0.65rem',
-                          borderRadius: '6px',
-                          cursor: isEmailVerified ? 'default' : 'pointer',
-                          transition: 'all 0.2s ease',
-                          zIndex: 10
-                        }}
-                      >
-                        {isEmailVerified ? 'Verified ✓' : isOtpSending ? 'Sending...' : otpCooldown > 0 ? `Resend (${otpCooldown}s)` : 'Send OTP'}
-                      </button>
-                      <div className="field-line" style={{ width: 'calc(100% - 95px)' }}></div>
+                      <div className="field-line"></div>
                       <div className="field-error">Please enter a valid email address</div>
                     </div>
 
