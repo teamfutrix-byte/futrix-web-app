@@ -479,18 +479,24 @@ function saveRegistration(e) {
 // ── SEND OTP: Generates and emails a 6-digit verification code
 function sendOTP(e) {
   var email = (e.parameter.email || '').toLowerCase().trim();
+  var phone = (e.parameter.phone || '').trim();
   if (!email) return { success: false, message: 'Email address is required.' };
   
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   
-  // Check if email is already registered in the responses sheet
+  // Check if email or mobile number is already registered in the responses sheet
   var regSheet = ss.getSheets()[0];
   var regData = regSheet.getDataRange().getValues();
   var emailCol = getColumnIndexByName(regSheet, 'email', 3);
+  var phoneCol = getColumnIndexByName(regSheet, 'phone', 4);
   for (var i = 1; i < regData.length; i++) {
     var rowEmail = String(regData[i][emailCol - 1] || '').toLowerCase().trim();
-    if (rowEmail === email) {
+    var rowPhone = String(regData[i][phoneCol - 1] || '').trim();
+    if (email && rowEmail === email) {
       return { success: false, message: 'This email address is already registered. Please login or use a different email.' };
+    }
+    if (phone && rowPhone === phone) {
+      return { success: false, message: 'This mobile number is already registered. Please login or use a different mobile number.' };
     }
   }
   

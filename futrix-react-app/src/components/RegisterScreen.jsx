@@ -161,7 +161,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
     
     setIsOtpSending(true);
     try {
-      const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'sendOTP', email: email.trim() });
+      const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'sendOTP', email: email.trim(), phone: phone.trim() });
       if (res && res.success) {
         onShowToast('OTP verification code sent to your email!', 'success');
         setIsOtpSent(true);
@@ -268,7 +268,7 @@ const RegisterScreen = ({ onNavigate, onShowToast }) => {
     if (!isEmailVerified) {
       setIsLoading(true);
       try {
-        const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'sendOTP', email: email.trim() });
+        const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'sendOTP', email: email.trim(), phone: phone.trim() });
         if (res && res.success) {
           onShowToast('OTP verification code sent to your email!', 'success');
           setIsOtpSent(true);

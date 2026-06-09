@@ -1831,11 +1831,12 @@
 
     document.getElementById('modalResendBtn').addEventListener('click', async () => {
       const email = document.getElementById('emailAddress').value.trim();
+      const phone = document.getElementById('phoneNumber').value.trim();
       const resendBtn = document.getElementById('modalResendBtn');
       resendBtn.disabled = true;
       resendBtn.textContent = 'Sending...';
       try {
-        const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'sendOTP', email: email });
+        const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'sendOTP', email: email, phone: phone });
         if (res && res.success) {
           showToast('Verification code resent successfully!', 'success');
           startCooldown();
@@ -2110,7 +2111,7 @@
         spinner.style.display = 'block';
 
         try {
-          const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'sendOTP', email: email.trim() });
+          const res = await jsonpRequest(APPS_SCRIPT_URL, { action: 'sendOTP', email: email.trim(), phone: phone.trim() });
           if (res && res.success) {
             showToast('OTP verification code sent to your email!', 'success');
             openOtpModal(email.trim());
